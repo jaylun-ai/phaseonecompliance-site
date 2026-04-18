@@ -32,7 +32,7 @@
       // Flagship: $2,997 one-time setup + $597/mo subscription (recommended product)
       stripeFlagship: "https://buy.stripe.com/00wfZhadgaJQaJdc55aIM03",
       // Quick Start: $2,000 one-time setup + $597/mo subscription
-      stripeQuick:    "https://buy.stripe.com/7sY7sL2KO5pwdVp6KLaIM04REPLACE_BEFORE_DEPLOY_quickstart_2000_setup_597_monthly",
+      stripeQuick:    "https://buy.stripe.com/7sY7sL2KO5pwdVp6KLaIM04",
       // Full Coverage: $3,500 one-time setup + $597/mo subscription (includes historical reconstruction)
       stripeFull:     "https://buy.stripe.com/6oU7sL0CGf06g3xc55aIM05",
       // Monthly-only: $597/mo for teams that don't need setup (added post-launch)
@@ -716,6 +716,45 @@
                   If DCAA flags timekeeping as a pre-award survey finding during your first 12 months as a client, we refund your full setup fee and continue running PhaseOne at no charge until it passes. We're the only compliance platform putting that in writing.
                 </p>
               </div>
+            </div>
+
+            {/* PHASE II TRANSITION PACKAGE — EXPANSION REVENUE */}
+            <div style={{
+              maxWidth: 640, margin: "0 auto 28px",
+              background: "linear-gradient(180deg, rgba(15,23,42,0.6), rgba(15,23,42,0.3))",
+              border: "1px solid rgba(245,158,11,0.25)", borderRadius: 14,
+              padding: "24px 28px",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 14 }}>
+                <div style={{ flex: "1 1 auto" }}>
+                  <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: "#F59E0B", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 4 }}>When You Win Phase II</p>
+                  <h4 style={{ fontSize: 18, fontWeight: 700, color: "white", marginBottom: 0 }}>Phase II Transition Package</h4>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 26, fontWeight: 700, color: "white" }}>$6,500</div>
+                  <div style={{ fontSize: 11, color: "#64748B", fontFamily: "'Space Mono',monospace" }}>one-time · add-on</div>
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: "#CBD5E1", lineHeight: 1.65, marginBottom: 14 }}>
+                The day your Phase II award is signed, the compliance bar shifts from firm-fixed-price to cost-reimbursable. Different rules. Different reporting cadence. Different SF-1408 stakes. This add-on is the 30-day implementation that takes your existing PhaseOne deployment from Phase I configuration to full Phase II audit-readiness.
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 8, marginBottom: 14 }}>
+                {[
+                  "Provisional indirect rate memorandum (CPA-reviewed)",
+                  "Multi-CLIN labor distribution configuration",
+                  "Monthly cost voucher template + test voucher",
+                  "ICS submission prep (FY-end reconciliation)",
+                  "SF-1408 readiness package for proposal appendix",
+                  "Dedicated 30-day implementation manager",
+                ].map((f, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <Check /><span style={{ fontSize: 12.5, color: "#CBD5E1", lineHeight: 1.5 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 11, color: "#64748B", fontFamily: "'Space Mono',monospace", fontStyle: "italic", margin: 0 }}>
+                Included free for Full Coverage clients. Add-on for Quick Start and Monthly clients when Phase II triggers.
+              </p>
             </div>
 
             {/* DEPLOYMENT OPTIONS */}
