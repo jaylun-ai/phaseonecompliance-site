@@ -3,30 +3,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PhaseOne Compliance | Phase II Readiness for SBIR Teams</title>
-  
+  <title>PhaseOne Compliance — Phase II Readiness for SBIR Teams</title>
+  <meta name="description" content="Automated DCAA-compliant timekeeping for SBIR/STTR Phase I teams. 10-second Slack updates translate into audit-ready documentation. Deployed in 48 hours. Phase II Readiness Guarantee." />
+
+  <!-- Analytics (Plausible). Replace DOMAIN before deploying; or swap for Fathom/GA4.
+       Keeping it privacy-respecting matters for GovTech buyers who check.
+       Docs: https://plausible.io/docs  -->
+  <script defer data-domain="phaseonecompliance.com" src="https://plausible.io/js/script.js"></script>
+
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body style="margin: 0; padding: 0; background-color: #050A12;">
-  <!-- S.3971 UPDATE BANNER -->
-  <div style="background: linear-gradient(90deg, #1E3A5F 0%, #3B82F6 100%); padding: 10px 20px; text-align: center; font-family: system-ui, -apple-system, sans-serif; color: #fff; font-size: 13px; line-height: 1.5; letter-spacing: 0.01em; border-bottom: 1px solid rgba(255,255,255,0.1);">
-    <strong style="letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; font-family: 'Space Mono', monospace; margin-right: 8px;">S.3971 Update —</strong>
-    The Small Business Innovation and Economic Security Act was signed into law April 13, 2026. DoW FY-2026 SBIR solicitations are open May 5 – June 3. Teams applying for Phase II now face immediate SF-1408 pre-award surveys due to the 6-month program lapse.
-  </div>
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef, useMemo } = React;
 
-    // ── CONFIG: Replace these with your real links ──
+    // ── CONFIG ──
+    // IMPORTANT: Before deploying, create 3 Stripe payment links and replace the
+    // REPLACE_BEFORE_DEPLOY tokens below. These tokens will return a 404 if
+    // clicked, which is intentional — it prevents accidentally charging the
+    // wrong amount with placeholder/test URLs.
     const LINKS = {
       readinessScore: "#readiness",
-      bookCall: "https://calendly.com/jaylun-phaseonecompliance/15-min-compliance-audit",
-      stripeSetup: "https://buy.stripe.com/aFaaEXetw2dkbNh3yzaIM02", 
-      stripeBundle: "https://buy.stripe.com/test_14A14nal9g6VfVLamF2Ry00", 
-      secondPage: "/success.html"
+      bookCall:       "https://calendly.com/jaylun-phaseonecompliance/15-min-compliance-audit",
+      // Flagship: $2,997 one-time setup + $597/mo subscription (recommended product)
+      stripeFlagship: "https://buy.stripe.com/00wfZhadgaJQaJdc55aIM03",
+      // Quick Start: $2,000 one-time setup + $597/mo subscription
+      stripeQuick:    "https://buy.stripe.com/7sY7sL2KO5pwdVp6KLaIM04REPLACE_BEFORE_DEPLOY_quickstart_2000_setup_597_monthly",
+      // Full Coverage: $3,500 one-time setup + $597/mo subscription (includes historical reconstruction)
+      stripeFull:     "https://buy.stripe.com/6oU7sL0CGf06g3xc55aIM05",
+      // Monthly-only: $597/mo for teams that don't need setup (added post-launch)
+      stripeMonthly:  "https://buy.stripe.com/bJeeVdcloaJQ8B52uvaIM06",
+      samplePackage:  "/PhaseOne_Sample_Audit_Package.zip",
+      tryDemo:        "/demo.html",
     };
 
     // ── ICONS ──
@@ -37,18 +49,18 @@
         <defs><linearGradient id="sg" x1="16" y1="2" x2="16" y2="31.5"><stop stopColor="#1E3A5F"/><stop offset="1" stopColor="#0C1425"/></linearGradient></defs>
       </svg>
     );
-
     const Check = () => (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 3 }}>
         <circle cx="8" cy="8" r="8" fill="#10B981" opacity="0.15"/>
         <path d="M5 8.5L7 10.5L11 6.5" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     );
-
     const Arrow = () => (
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
     );
-
+    const Download = ({ size = 14 }) => (
+      <svg width={size} height={size} viewBox="0 0 14 14" fill="none"><path d="M7 2V10M7 10L3.5 6.5M7 10L10.5 6.5M2 12H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    );
     const SlackIcon = () => (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M7.5 2C6.67 2 6 2.67 6 3.5S6.67 5 7.5 5H9V3.5C9 2.67 8.33 2 7.5 2Z" fill="#E01E5A"/>
@@ -62,37 +74,24 @@
       </svg>
     );
 
-    // ── TYPING ANIMATION COMPONENT ──
+    // ── TYPING ANIMATION ──
     function TypingDemo() {
       const [step, setStep] = useState(0);
       const [typed, setTyped] = useState("");
       const [showResult, setShowResult] = useState(false);
-
       const engineerInput = "fixed backend api, pushed to staging";
       const dcaaOutput = "Performed integration testing and secure deployment of backend API endpoint for Project ATLAS data processing module. Updated staging environment per system security plan requirements. Time: 2.5 hrs, Direct Labor, CLIN 0001.";
-
       useEffect(() => {
         const timer = setTimeout(() => {
           if (step === 0) {
-            if (typed.length < engineerInput.length) {
-              setTyped(engineerInput.slice(0, typed.length + 1));
-            } else {
-              setTimeout(() => setStep(1), 800);
-            }
+            if (typed.length < engineerInput.length) setTyped(engineerInput.slice(0, typed.length + 1));
+            else setTimeout(() => setStep(1), 800);
           }
-          if (step === 1) {
-            setShowResult(true);
-            setTimeout(() => setStep(2), 4000);
-          }
-          if (step === 2) {
-            setStep(0);
-            setTyped("");
-            setShowResult(false);
-          }
+          if (step === 1) { setShowResult(true); setTimeout(() => setStep(2), 4000); }
+          if (step === 2) { setStep(0); setTyped(""); setShowResult(false); }
         }, step === 0 ? 55 : 100);
         return () => clearTimeout(timer);
       }, [step, typed]);
-
       return (
         <div style={{ background: "rgba(15,23,42,0.7)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 12, overflow: "hidden" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(59,130,246,0.08)" }}>
@@ -100,11 +99,7 @@
               <SlackIcon />
               <span style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono', monospace", letterSpacing: "0.5px" }}>ENGINEER'S SLACK UPDATE</span>
             </div>
-            <div style={{
-              background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "12px 16px",
-              fontFamily: "'Space Mono', monospace", fontSize: 14, color: "#94A3B8",
-              minHeight: 20, border: "1px solid rgba(255,255,255,0.05)"
-            }}>
+            <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 8, padding: "12px 16px", fontFamily: "'Space Mono', monospace", fontSize: 14, color: "#94A3B8", minHeight: 20 }}>
               {typed}<span style={{ opacity: step === 0 ? 1 : 0, animation: "blink 1s infinite" }}>|</span>
             </div>
           </div>
@@ -120,90 +115,282 @@
               border: showResult ? "1px solid rgba(59,130,246,0.15)" : "1px solid rgba(255,255,255,0.03)",
               transition: "all 0.5s ease",
             }}>
-              {showResult ? (
-                <p style={{ fontSize: 13, color: "#CBD5E1", lineHeight: 1.65, fontFamily: "'DM Sans', sans-serif", margin: 0 }}>
-                  {dcaaOutput}
-                </p>
-              ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B82F6", animation: "pulse 1.5s infinite" }} />
-                  <span style={{ fontSize: 12, color: "#475569" }}>Waiting for engineer input...</span>
-                </div>
-              )}
+              {showResult
+                ? <p style={{ fontSize: 13, color: "#CBD5E1", lineHeight: 1.65, fontFamily: "'DM Sans', sans-serif", margin: 0 }}>{dcaaOutput}</p>
+                : <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B82F6", animation: "pulse 1.5s infinite" }} />
+                    <span style={{ fontSize: 12, color: "#475569" }}>Waiting for engineer input...</span>
+                  </div>}
             </div>
           </div>
         </div>
       );
     }
 
-    // ── FAQ ──
-    const faqs = [
-      { q: "How is this different from Hour Timesheet, WeWorked, or other DCAA timesheet tools?", a: "Those tools digitize timesheets — your engineers still manually fill out forms, select labor categories from dropdowns, and type compliant descriptions themselves. Most engineers don't do it consistently, which is why timekeeping is the #1 DCAA audit finding. PhaseOne eliminates the timesheet entirely. Engineers type a natural Slack message, and our AI handles the DCAA translation, CLIN mapping, and compliance scoring automatically." },
-      { q: "Why $597/month instead of $8/user/month like other tools?", a: "A $48/month timesheet tool records whatever your engineer types — including non-compliant entries that will fail an audit. PhaseOne doesn't just record time — it translates natural language into DCAA-ready documentation, flags unallowable costs automatically, runs weekly compliance audits, and monitors your contract burn rate. Plus, the 15 minutes/day your engineers save on timesheets is worth $28,000/year in recovered productivity. PhaseOne pays for itself 4x over." },
-      { q: "How is this different from Deltek or Unanet?", a: "Those are enterprise ERPs designed for 500-person defense contractors — they cost $50K+ to implement and take months. We're built specifically for Phase I SBIR teams: 48-hour deployment, zero training required, and your engineers never leave Slack." },
-      { q: "What if I'm already 30–60 days into my award?", a: "That's exactly what our Full Coverage package handles. We backfill your compliance documentation from Day 1 of your award — no gaps, no audit risk." },
-      { q: "How is this different from hiring an accountant?", a: "Traditional DCAA accountants handle your books — which is important. We handle the engineering-side compliance that accountants can't: daily timekeeping capture, AI translation to audit-ready language, real-time compliance scoring, and automatic unallowable cost detection. We complement your accountant, not replace them." },
-      { q: "What if I don't have DCAA issues during Phase I?", a: "Phase I awards are typically firm-fixed-price, so direct DCAA audits are rare. But when you apply for Phase II (where $1.5M+ is at stake), having clean Phase I documentation dramatically strengthens your application. Building the habit now costs you nothing and protects everything." },
-      { q: "What compliance frameworks do you cover?", a: "DCAA timekeeping requirements, FAR Part 31 cost principles, SF-1408 pre-award survey alignment, unallowable cost detection under FAR 31.205, and daily labor distribution standards. We cover DoD, NSF, NASA, NIH, DOE, and DHHS SBIR/STTR programs." },
-      { q: "Can I cancel the monthly subscription anytime?", a: "Yes, month-to-month after setup. But once you see the time savings and audit readiness, the $597/month pays for itself many times over in recovered engineering productivity alone." },
-    ];
+    // ── ROI CALCULATOR ──
+    function ROICalculator() {
+      const [teamSize, setTeamSize] = useState(6);
+      const [hourlyRate, setHourlyRate] = useState(75);
+      const [minutesPerDay, setMinutesPerDay] = useState(15);
 
-    // ── MAIN COMPONENT ──
-    function PhaseOneRedesign() {
-      const [activeFaq, setActiveFaq] = useState(null);
+      const workDays = 250;
+      const annualHoursWasted = useMemo(() => (teamSize * minutesPerDay * workDays) / 60, [teamSize, minutesPerDay]);
+      const annualCostWasted = useMemo(() => annualHoursWasted * hourlyRate, [annualHoursWasted, hourlyRate]);
+      const phaseoneYear1Cost = 597 * 12 + 2997; // setup + 12 months
+      const phaseoneOngoingCost = 597 * 12;     // year 2+ recurring only
+      const netYear1Savings = annualCostWasted - phaseoneYear1Cost;
+      const roiMultipleOngoing = useMemo(
+        () => annualCostWasted > 0 && phaseoneOngoingCost > 0
+          ? (annualCostWasted / phaseoneOngoingCost).toFixed(1)
+          : "—",
+        [annualCostWasted]
+      );
+      const paybackDays = annualCostWasted > 0
+        ? Math.max(1, Math.round((phaseoneYear1Cost / (annualCostWasted / 365))))
+        : "—";
+      const fmt = n => "$" + Math.round(n).toLocaleString();
 
       return (
         <div style={{
-          minHeight: "100vh", background: "#050A12", color: "#E2E8F0",
-          fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif",
+          background: "linear-gradient(180deg, rgba(30,58,95,0.25), rgba(15,23,42,0.6))",
+          border: "1px solid rgba(59,130,246,0.18)", borderRadius: 16,
+          padding: "32px 32px 28px",
+          boxShadow: "0 0 60px rgba(59,130,246,0.06)",
         }}>
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>ROI Calculator</p>
+            <h3 style={{ fontSize: 22, fontWeight: 700, color: "white", marginBottom: 4 }}>What Timesheets Actually Cost Your Team</h3>
+            <p style={{ fontSize: 13, color: "#94A3B8" }}>Most DCAA-compliant timesheet tools cost $8/user/month. That's not the expensive part.</p>
+          </div>
+
+          {/* Sliders */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20, marginBottom: 28 }}>
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <label style={{ fontSize: 12, color: "#94A3B8", fontFamily: "'Space Mono',monospace", letterSpacing: "0.5px", textTransform: "uppercase" }}>Team Size (engineers)</label>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#60A5FA", fontFamily: "'Space Mono',monospace" }}>{teamSize}</span>
+              </div>
+              <input
+                type="range" min="3" max="15" step="1" value={teamSize}
+                onChange={e => setTeamSize(parseInt(e.target.value))}
+                style={{ width: "100%", accentColor: "#3B82F6" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#475569", fontFamily: "'Space Mono',monospace", marginTop: 2 }}>
+                <span>3</span><span>15</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <label style={{ fontSize: 12, color: "#94A3B8", fontFamily: "'Space Mono',monospace", letterSpacing: "0.5px", textTransform: "uppercase" }}>Avg Hourly Cost</label>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#60A5FA", fontFamily: "'Space Mono',monospace" }}>${hourlyRate}/hr</span>
+              </div>
+              <input
+                type="range" min="50" max="150" step="5" value={hourlyRate}
+                onChange={e => setHourlyRate(parseInt(e.target.value))}
+                style={{ width: "100%", accentColor: "#3B82F6" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#475569", fontFamily: "'Space Mono',monospace", marginTop: 2 }}>
+                <span>$50</span><span>$150</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <label style={{ fontSize: 12, color: "#94A3B8", fontFamily: "'Space Mono',monospace", letterSpacing: "0.5px", textTransform: "uppercase" }}>Min / Day on Timesheets</label>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "#60A5FA", fontFamily: "'Space Mono',monospace" }}>{minutesPerDay} min</span>
+              </div>
+              <input
+                type="range" min="5" max="30" step="1" value={minutesPerDay}
+                onChange={e => setMinutesPerDay(parseInt(e.target.value))}
+                style={{ width: "100%", accentColor: "#3B82F6" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#475569", fontFamily: "'Space Mono',monospace", marginTop: 2 }}>
+                <span>5</span><span>30</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Output Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12, marginBottom: 20 }}>
+            {[
+              { l: "Hours Lost / Year", v: Math.round(annualHoursWasted).toLocaleString(), unit: "hrs", color: "#F59E0B" },
+              { l: "Productivity Wasted", v: fmt(annualCostWasted), color: "#EF4444" },
+              { l: "PhaseOne Year 1 Cost", v: fmt(phaseoneYear1Cost), color: "#94A3B8" },
+              { l: "Year 1 Net Savings", v: fmt(netYear1Savings), color: "#10B981" },
+            ].map((c, i) => (
+              <div key={i} style={{
+                background: "rgba(0,0,0,0.25)", border: "1px solid rgba(59,130,246,0.1)",
+                borderRadius: 10, padding: "14px 16px", textAlign: "center",
+              }}>
+                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: "#64748B", letterSpacing: "0.5px", textTransform: "uppercase", marginBottom: 6 }}>
+                  {c.l}
+                </div>
+                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 22, fontWeight: 700, color: c.color }}>
+                  {c.v}{c.unit ? <span style={{ fontSize: 12, color: "#64748B", marginLeft: 4 }}>{c.unit}</span> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            textAlign: "center", fontSize: 14, color: "#CBD5E1",
+            padding: "10px 0", borderTop: "1px solid rgba(59,130,246,0.08)",
+          }}>
+            PhaseOne pays for itself in <strong style={{ color: "#10B981" }}>{paybackDays} days</strong>. In Year 2 and beyond (no setup fee), every $1 spent on PhaseOne returns <strong style={{ color: "white" }}>${roiMultipleOngoing}</strong> in recovered engineering productivity.
+          </div>
+        </div>
+      );
+    }
+
+    // ── FAQ DATA ──
+    const faqs = [
+      { q: "How is this different from Hour Timesheet, WeWorked, or other DCAA timesheet tools?",
+        a: "Those tools digitize timesheets — your engineers still manually fill out forms, select labor categories from dropdowns, and type compliant descriptions themselves. Most engineers don't do it consistently, which is why timekeeping is the #1 DCAA audit finding. PhaseOne eliminates the timesheet entirely. Engineers type a natural Slack message, and our AI handles the DCAA translation, CLIN mapping, and compliance scoring automatically." },
+      { q: "Why $597/month instead of $8/user/month like other tools?",
+        a: "A $48/month timesheet tool records whatever your engineer types — including non-compliant entries that will fail an audit. PhaseOne doesn't just record time — it translates natural language into DCAA-ready documentation, flags unallowable costs automatically, runs weekly compliance audits, and monitors your contract burn rate. Plus, the 15 minutes/day your engineers save on timesheets is worth ~$28,000/year in recovered productivity. Use the ROI calculator above." },
+      { q: "How is this different from Deltek or Unanet?",
+        a: "Those are enterprise ERPs designed for 500-person defense contractors — they cost $50K+ to implement and take months. We're built specifically for Phase I SBIR teams: 48-hour deployment, zero training required, and your engineers never leave Slack." },
+      { q: "What if I'm already 30–60 days into my award?",
+        a: "That's exactly what our Full Coverage package handles. We backfill your compliance documentation from Day 1 of your award — no gaps, no audit risk." },
+      { q: "Does DCAA even audit Phase I?",
+        a: "Phase I awards are typically firm-fixed-price, so direct DCAA audits during Phase I execution are rare. The pressure hits at Phase II — where awards reach $1.5M+ and a Standard Form 1408 pre-award accounting system survey is triggered before funds are obligated. Teams that start compliance habits during Phase I walk into Phase II with a strong posture. Teams that scramble at submission time typically face 60–120 day award delays." },
+      { q: "How is this different from hiring an accountant?",
+        a: "Traditional DCAA accountants handle your books — which is important. We handle the engineering-side compliance that accountants can't: daily timekeeping capture, AI translation to audit-ready language, real-time compliance scoring, and automatic unallowable cost detection. We complement your accountant, not replace them." },
+      { q: "What compliance frameworks do you cover?",
+        a: "DCAA timekeeping requirements, FAR Part 31 cost principles, SF-1408 pre-award survey alignment, unallowable cost detection under FAR 31.205, and daily labor distribution standards. We cover DoD, NSF, NASA, NIH, DOE, and DHHS SBIR/STTR programs." },
+      { q: "Can I cancel the monthly subscription anytime?",
+        a: "Yes, month-to-month after setup. No annual contract required. Annual prepay is available at 15% discount if you prefer." },
+      { q: "What's the Phase II Readiness Guarantee?",
+        a: "If your SF-1408 pre-award survey flags timekeeping as a finding during your first 12 months as a PhaseOne client, we refund your full setup fee and continue running your system at no charge until it passes. Details on the Pricing section." },
+    ];
+
+    // ════════════════════════════════════════════════════════
+    function PhaseOnePage() {
+      const [activeFaq, setActiveFaq] = useState(null);
+      const [mobileNavOpen, setMobileNavOpen] = useState(false);
+      return (
+        <div style={{ background: "#050A12", color: "#E2E8F0", fontFamily: "'DM Sans', -apple-system, system-ui, sans-serif", minHeight: "100vh", overflow: "hidden" }}>
+          {/* GLOBAL STYLES */}
           <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Space+Mono:wght@400;700&display=swap');
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-            @keyframes blink { 0%,50% { opacity:1; } 51%,100% { opacity:0; } }
-            @keyframes pulse { 0%,100% { opacity:0.4; } 50% { opacity:1; } }
-            @keyframes pulse-ring { 0% { box-shadow:0 0 0 0 rgba(59,130,246,0.35); } 70% { box-shadow:0 0 0 10px rgba(59,130,246,0); } 100% { box-shadow:0 0 0 0 rgba(59,130,246,0); } }
-            .fade-up { animation: fadeUp 0.6s ease-out forwards; opacity:0; }
-            .d1 { animation-delay:0.1s } .d2 { animation-delay:0.2s } .d3 { animation-delay:0.3s } .d4 { animation-delay:0.4s } .d5 { animation-delay:0.5s }
-            .sec { max-width:1000px; margin:0 auto; padding:0 24px; }
-            .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:14px 32px; border:none; border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:600; font-size:15px; text-decoration:none; transition:all 0.2s; }
-            .btn-primary { background:linear-gradient(135deg,#3B82F6,#2563EB); color:white; animation:pulse-ring 2.5s infinite; }
-            .btn-primary:hover { transform:translateY(-2px); filter:brightness(1.12); }
-            .btn-secondary { background:rgba(59,130,246,0.08); color:#60A5FA; border:1.5px solid rgba(59,130,246,0.25); }
-            .btn-secondary:hover { background:rgba(59,130,246,0.15); border-color:#3B82F6; }
-            .badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:100px; font-size:12px; font-weight:500; letter-spacing:0.3px; }
-            .grid-bg { position:fixed; inset:0; background-image:linear-gradient(rgba(59,130,246,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.025) 1px,transparent 1px); background-size:60px 60px; pointer-events:none; z-index:0; }
-            .card { background:rgba(15,23,42,0.5); border:1px solid rgba(59,130,246,0.1); border-radius:14px; padding:28px; transition:all 0.25s; }
-            .card:hover { border-color:rgba(59,130,246,0.25); }
-            a { color: inherit; }
+            @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+            * { box-sizing: border-box; }
+            html { scroll-behavior: smooth; }
+            body { margin: 0; }
+            @keyframes blink { 50% { opacity: 0; } }
+            @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+            @keyframes pulse-ring { 0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); } 50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); } }
+            @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+            .fade-up { animation: fadeUp 0.8s ease-out backwards; }
+            .fade-up.d1 { animation-delay: 0.05s; }
+            .fade-up.d2 { animation-delay: 0.15s; }
+            .fade-up.d3 { animation-delay: 0.25s; }
+            .fade-up.d4 { animation-delay: 0.35s; }
+            .fade-up.d5 { animation-delay: 0.45s; }
+            .sec { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+            .card {
+              background: rgba(15,23,42,0.4); border: 1px solid rgba(59,130,246,0.08);
+              border-radius: 12px; padding: 28px; transition: all 0.25s ease;
+            }
+            .card:hover { border-color: rgba(59,130,246,0.2); transform: translateY(-2px); }
+            .btn {
+              display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+              padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 14px;
+              text-decoration: none; transition: all 0.2s; cursor: pointer; border: none;
+              font-family: inherit;
+            }
+            .btn-primary {
+              background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white;
+              box-shadow: 0 4px 14px rgba(59,130,246,0.25);
+            }
+            .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.35); }
+            .btn-secondary {
+              background: rgba(59,130,246,0.08); color: #CBD5E1;
+              border: 1px solid rgba(59,130,246,0.25);
+            }
+            .btn-secondary:hover { border-color: rgba(59,130,246,0.5); background: rgba(59,130,246,0.12); }
+            .btn-ghost {
+              background: transparent; color: #94A3B8; border: 1px solid rgba(148,163,184,0.2);
+            }
+            .btn-ghost:hover { color: #E2E8F0; border-color: rgba(148,163,184,0.4); }
+            .badge {
+              display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+              border-radius: 100px; font-family: 'Space Mono', monospace; font-size: 11px;
+              letter-spacing: 0.5px;
+            }
+            input[type=range] { height: 6px; border-radius: 3px; background: rgba(59,130,246,0.15); outline: none; }
+            input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #3B82F6; cursor: pointer; box-shadow: 0 0 0 4px rgba(59,130,246,0.2); }
+            input[type=range]::-moz-range-thumb { height: 18px; width: 18px; border-radius: 50%; background: #3B82F6; cursor: pointer; border: none; box-shadow: 0 0 0 4px rgba(59,130,246,0.2); }
+
+            /* Nav responsive: show hamburger under 760px, hide desktop links */
+            .nav-links-desktop { display: flex; gap: 28px; align-items: center; }
+            .nav-links-mobile { display: none; }
+            @media (max-width: 760px) {
+              .nav-links-desktop { display: none !important; }
+              .nav-hamburger { display: inline-flex !important; }
+              .nav-links-mobile { display: flex !important; }
+              .sec { padding: 0 18px; }
+            }
           `}</style>
 
-          <div className="grid-bg" />
-
           {/* NAV */}
-          <nav style={{
-            position: "sticky", top: 0, zIndex: 100,
-            background: "rgba(5,10,18,0.85)", backdropFilter: "blur(12px)",
-            borderBottom: "1px solid rgba(59,130,246,0.08)", padding: "14px 0",
-          }}>
+          <nav style={{ padding: "18px 0", borderBottom: "1px solid rgba(59,130,246,0.06)", position: "sticky", top: 0, background: "rgba(5,10,18,0.85)", backdropFilter: "blur(10px)", zIndex: 50 }}>
             <div className="sec" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Shield size={24} />
-                <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em" }}>PhaseOne Compliance</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+              <a href="#" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+                <Shield size={22} />
+                <span style={{ fontSize: 16, fontWeight: 700, color: "white" }}>PhaseOne <span style={{ color: "#3B82F6" }}>Compliance</span></span>
+              </a>
+              <div className="nav-links-desktop">
                 <a href="#how" style={{ fontSize: 13, color: "#94A3B8", textDecoration: "none" }}>How It Works</a>
+                <a href="#sample" style={{ fontSize: 13, color: "#94A3B8", textDecoration: "none" }}>Sample Outputs</a>
                 <a href="#pricing" style={{ fontSize: 13, color: "#94A3B8", textDecoration: "none" }}>Pricing</a>
                 <a href="#faq" style={{ fontSize: 13, color: "#94A3B8", textDecoration: "none" }}>FAQ</a>
-                <a href={LINKS.bookCall} className="btn btn-primary" style={{ padding: "8px 20px", fontSize: 13, animation: "none" }}>
+                <a href={LINKS.bookCall} className="btn btn-primary" style={{ padding: "10px 18px", fontSize: 13 }}>Book a Call</a>
+              </div>
+              <button
+                className="nav-hamburger"
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                aria-label="Toggle menu"
+                style={{
+                  background: "transparent", border: "1px solid rgba(148,163,184,0.25)",
+                  borderRadius: 8, padding: "8px 10px", cursor: "pointer",
+                  display: "none", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  {mobileNavOpen
+                    ? <path d="M4 4L14 14M14 4L4 14" stroke="#CBD5E1" strokeWidth="1.75" strokeLinecap="round" />
+                    : <><path d="M3 5H15M3 9H15M3 13H15" stroke="#CBD5E1" strokeWidth="1.75" strokeLinecap="round" /></>
+                  }
+                </svg>
+              </button>
+            </div>
+            {mobileNavOpen && (
+              <div className="nav-links-mobile" style={{
+                display: "flex", flexDirection: "column", gap: 0,
+                borderTop: "1px solid rgba(59,130,246,0.08)",
+                background: "rgba(5,10,18,0.95)",
+              }}>
+                {[
+                  ["How It Works", "#how"],
+                  ["Sample Outputs", "#sample"],
+                  ["Pricing", "#pricing"],
+                  ["FAQ", "#faq"],
+                ].map(([label, href]) => (
+                  <a key={href} href={href} onClick={() => setMobileNavOpen(false)}
+                     style={{ padding: "14px 24px", fontSize: 14, color: "#CBD5E1",
+                              textDecoration: "none", borderBottom: "1px solid rgba(59,130,246,0.05)" }}>
+                    {label}
+                  </a>
+                ))}
+                <a href={LINKS.bookCall} onClick={() => setMobileNavOpen(false)}
+                   className="btn btn-primary"
+                   style={{ margin: "16px 24px", fontSize: 14, padding: "12px 20px" }}>
                   Book a Call
                 </a>
               </div>
-            </div>
+            )}
           </nav>
 
-          {/* ════════ HERO ════════ */}
+          {/* HERO */}
           <section style={{ position: "relative", padding: "70px 0 50px", textAlign: "center" }}>
             <div className="sec">
               <div className="fade-up d1" style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
@@ -231,22 +418,21 @@
                 Your engineers type a 10-second Slack message. Our AI translates it into DCAA-compliant documentation — CLIN-mapped, audit-trailed, and scored for compliance. No timesheets. No new tools. No behavior change.
               </p>
 
-              {/* DUAL CTA TRACK */}
-              <div className="fade-up d4" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 12 }}>
-                <a href={LINKS.readinessScore} className="btn btn-primary" style={{ padding: "16px 36px", fontSize: 16 }}>
-                  Get My Free DCAA Readiness Score <Arrow />
+              <div className="fade-up d4" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 14 }}>
+                <a href={LINKS.tryDemo} className="btn btn-primary" style={{ padding: "16px 36px", fontSize: 16 }}>
+                  Try the AI Live <Arrow />
                 </a>
                 <a href={LINKS.bookCall} className="btn btn-secondary" style={{ padding: "16px 36px", fontSize: 16 }}>
                   Book a 15-Min Phase II Readiness Check
                 </a>
               </div>
               <p className="fade-up d5" style={{ fontSize: 12, color: "#475569" }}>
-                2-minute diagnostic · No credit card · Instant report via email
+                Paste your team's actual Slack update · Get the DCAA version in 2 seconds · No signup
               </p>
             </div>
           </section>
 
-          {/* STATS */}
+          {/* STATS STRIP */}
           <div style={{
             borderTop: "1px solid rgba(59,130,246,0.08)", borderBottom: "1px solid rgba(59,130,246,0.08)",
             background: "rgba(15,23,42,0.4)", padding: "16px 0", marginBottom: 70,
@@ -266,18 +452,23 @@
             </div>
           </div>
 
-          {/* ════════ LIVE DEMO ════════ */}
+          {/* LIVE DEMO */}
           <section id="how" className="sec" style={{ marginBottom: 80 }}>
             <div style={{ textAlign: "center", marginBottom: 36 }}>
               <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>See It In Action</p>
               <h2 style={{ fontSize: "clamp(26px,4vw,38px)", fontWeight: 700, letterSpacing: "-0.02em" }}>Engineer Writes 5 Words.<br/>DCAA Gets a Full Record.</h2>
             </div>
 
-            <div style={{ maxWidth: 640, margin: "0 auto 48px" }}>
+            <div style={{ maxWidth: 640, margin: "0 auto 24px" }}>
               <TypingDemo />
             </div>
 
-            {/* 3-STEP PROCESS */}
+            <div style={{ textAlign: "center", marginBottom: 48 }}>
+              <a href={LINKS.tryDemo} style={{ color: "#60A5FA", fontSize: 14, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                Try it yourself — paste your own update <Arrow />
+              </a>
+            </div>
+
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
               {[
                 { num: "01", title: "Capture", sub: "The Invisible Prompt", desc: "End-of-day Slack ping. Your engineer replies in 10 seconds with whatever shorthand they use. No new apps. No timesheets. No portals." },
@@ -294,19 +485,66 @@
             </div>
           </section>
 
-          {/* ════════ THE THREAT ════════ */}
-          <section style={{ borderTop: "1px solid rgba(59,130,246,0.06)", borderBottom: "1px solid rgba(59,130,246,0.06)", background: "rgba(15,23,42,0.3)", padding: "60px 0", marginBottom: 70 }}>
+          {/* SAMPLE PACKAGE DOWNLOAD */}
+          <section id="sample" style={{ borderTop: "1px solid rgba(59,130,246,0.06)", borderBottom: "1px solid rgba(59,130,246,0.06)", background: "rgba(15,23,42,0.3)", padding: "70px 0", marginBottom: 70 }}>
+            <div className="sec">
+              <div style={{ textAlign: "center", marginBottom: 40 }}>
+                <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>See What You'll Actually Receive</p>
+                <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 12 }}>Download a Real Sample Audit Package</h2>
+                <p style={{ fontSize: 15, color: "#94A3B8", maxWidth: 600, margin: "0 auto", lineHeight: 1.65 }}>
+                  The exact CSV exports and PDF reports you'll receive as a PhaseOne client. Synthetic data from a fictional Navy SBIR contract. No signup. No email gate.
+                </p>
+              </div>
+
+              <div style={{
+                maxWidth: 920, margin: "0 auto",
+                background: "linear-gradient(180deg, rgba(30,58,95,0.25), rgba(15,23,42,0.5))",
+                border: "1px solid rgba(59,130,246,0.18)", borderRadius: 16,
+                padding: "32px",
+              }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+                  {[
+                    { t: "DCAA Compliance Ledger", d: "90 days · 469 labor entries · CSV" },
+                    { t: "Monthly Executive Summary", d: "KPIs · CLIN distribution · findings · PDF" },
+                    { t: "SF-1408 Gap Assessment", d: "13 criteria scored · remediation plan · PDF" },
+                    { t: "Weekly Pre-Auditor Report", d: "7-rule scan · advisory flags · PDF" },
+                    { t: "Phase II Readiness Score", d: "Weighted composite · 30-day plan · PDF" },
+                    { t: "README + Methodology", d: "How to read the package · contact info" },
+                  ].map((item, i) => (
+                    <div key={i} style={{ display: "flex", gap: 10, padding: "12px 14px", background: "rgba(0,0,0,0.2)", borderRadius: 8, border: "1px solid rgba(59,130,246,0.06)" }}>
+                      <Check />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#E2E8F0" }}>{item.t}</div>
+                        <div style={{ fontSize: 11, color: "#64748B", fontFamily: "'Space Mono',monospace", marginTop: 2 }}>{item.d}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
+                  <a href={LINKS.samplePackage} className="btn btn-primary" download style={{ padding: "14px 28px" }}>
+                    <Download /> Download Sample Package (.zip)
+                  </a>
+                  <span style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono',monospace" }}>
+                    ~40 KB · Unzip to view
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* THE PHASE II TRAP */}
+          <section style={{ marginBottom: 70 }}>
             <div className="sec" style={{ maxWidth: 720 }}>
               <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#EF4444", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 8, textAlign: "center" }}>The Risk</p>
               <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em", textAlign: "center", marginBottom: 24 }}>The Phase II Trap</h2>
-              
-              <p style={{ fontSize: 16, color: "#CBD5E1", lineHeight: 1.75, marginBottom: 20 }}>
-                When you apply for Phase II — where awards reach <strong style={{ color: "white" }}>$1.5M</strong> — the government requires a pre-award accounting system survey (SF-1408). One of the biggest failure points? <strong style={{ color: "white" }}>Timekeeping.</strong>
-              </p>
-              <p style={{ fontSize: 16, color: "#CBD5E1", lineHeight: 1.75, marginBottom: 20 }}>
-                DCAA requires daily labor distribution records showing exactly what each team member worked on, for how long, charged to which contract. Standard engineering updates like "fixed backend API" don't meet this bar. Companies that discover this at Phase II application time face months of remediation — or lose the award entirely.
-              </p>
 
+              <p style={{ fontSize: 16, color: "#CBD5E1", lineHeight: 1.75, marginBottom: 20 }}>
+                Phase I awards are firm-fixed-price, so DCAA rarely scrutinizes your accounting system directly. That changes at Phase II. Phase II awards are cost-reimbursable — which triggers a Standard Form 1408 pre-award accounting system survey before funds are obligated.
+              </p>
+              <p style={{ fontSize: 16, color: "#CBD5E1", lineHeight: 1.75, marginBottom: 20 }}>
+                DCAA requires daily labor distribution records showing exactly what each team member worked on, for how long, charged to which contract. Standard engineering updates like "fixed backend API" don't meet this bar. Teams that discover this at Phase II application time face 3–5 months of retroactive reconstruction — or lose the award entirely.
+              </p>
               <div style={{
                 background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 10, padding: "18px 22px",
                 display: "flex", gap: 14, alignItems: "flex-start",
@@ -316,26 +554,34 @@
                   <path d="M10 8V12M10 15V15.01" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
                 <p style={{ fontSize: 14, color: "#FCA5A5", lineHeight: 1.6, margin: 0 }}>
-                  A Cherry Bekaert audit study found that companies frequently fail pre-award surveys and lose Phase II SBIR awards worth $1.5M+, sometimes facing 9+ months of delays to get their accounting systems re-approved.
+                  The #1 DCAA audit finding is timekeeping noncompliance. Not because teams lack timesheet software — because engineers don't fill timesheets out. PhaseOne eliminates the timesheet entirely.
                 </p>
               </div>
             </div>
           </section>
 
-          {/* ════════ WHAT YOU GET ════════ */}
+          {/* ROI CALCULATOR */}
+          <section className="sec" style={{ marginBottom: 80, maxWidth: 920 }}>
+            <ROICalculator />
+          </section>
+
+          {/* WHAT YOU GET */}
           <section className="sec" style={{ marginBottom: 70 }}>
-            <div style={{ textAlign: "center", marginBottom: 36 }}>
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
               <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>What's Included</p>
-              <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em" }}>Full Compliance Infrastructure in 48 Hours</h2>
+              <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em" }}>Complete Compliance Infrastructure</h2>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: 16, maxWidth: 1080, margin: "0 auto" }}>
               {[
-                { t: "Slack-Native Timekeeping", d: "Automated daily prompts in your engineering channels. 10-second responses. Zero new tools." },
+                { t: "Slack-Native Capture", d: "Engineers type 10-second updates. No new app. 10-second responses. Zero new tools." },
                 { t: "AI Translation Engine", d: "Every engineer update is converted to formal, DCAA-compliant terminology with proper contract attribution." },
+                { t: "Unallowable Cost Flagger", d: "Automatic FAR Part 31.205 detection. Catches meals, entertainment, and other non-billable entries at entry." },
                 { t: "Immutable Audit Vault", d: "Timestamped, tamper-proof records exportable as CSV. Ready for any DCAA auditor on demand." },
                 { t: "SF-1408 Alignment", d: "Your timekeeping system is structured to satisfy pre-award accounting system surveys before Phase II." },
+                { t: "Weekly Pre-Auditor", d: "Friday 5 PM automated 7-rule compliance scan. Catches issues while they're easy to correct." },
+                { t: "Monthly Executive Summary", d: "Auto-generated PDF for PM and CPA. KPIs, labor distribution, findings, and next-30-day actions." },
+                { t: "Burn Rate Monitor", d: "Monday 9 AM forecast of Phase I burn-through and Phase II transition timing." },
                 { t: "Multi-Agency Coverage", d: "Covers DoD, NSF, NASA, NIH, DOE, and DHHS SBIR/STTR programs and their specific requirements." },
-                { t: "Compliance Dashboard", d: "Real-time visibility into team compliance rates, missing entries, and audit readiness score." },
               ].map((item, i) => (
                 <div key={i} className="card" style={{ padding: 22 }}>
                   <h4 style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, color: "white" }}>{item.t}</h4>
@@ -345,258 +591,185 @@
             </div>
           </section>
 
-          {/* ════════ WHY TIMESHEETS FAIL ════════ */}
+          {/* REPLACES DELTEK */}
           <section className="sec" style={{ marginBottom: 70 }}>
             <div style={{
               background: "rgba(15,23,42,0.5)", border: "1px solid rgba(59,130,246,0.1)", borderRadius: 14,
-              padding: "36px",
+              padding: "32px 36px", display: "flex", gap: 40, alignItems: "center", flexWrap: "wrap", justifyContent: "center",
             }}>
-              <div style={{ textAlign: "center", marginBottom: 28 }}>
-                <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#F59E0B", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 8 }}>The Problem With Every Other Tool</p>
-                <h3 style={{ fontSize: "clamp(22px,3.5vw,30px)", fontWeight: 700, letterSpacing: "-0.02em" }}>Timesheet Software Assumes Engineers<br/>Will Fill Out Timesheets. They Won't.</h3>
-              </div>
-
-              <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center", marginBottom: 28 }}>
-                <div style={{ flex: "1 1 280px", maxWidth: 380 }}>
-                  <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: "#EF4444", letterSpacing: "1px", marginBottom: 8 }}>EVERY OTHER TOOL</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {[
-                      "Engineer opens a separate app",
-                      "Selects project from dropdown",
-                      "Selects labor category from dropdown",
-                      "Types a compliant description manually",
-                      "Submits for supervisor approval",
-                      "Repeats tomorrow (if they remember)",
-                    ].map((f, i) => (
-                      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 3 }}>
-                          <circle cx="8" cy="8" r="8" fill="#EF4444" opacity="0.15"/>
-                          <path d="M5 5L11 11M11 5L5 11" stroke="#EF4444" strokeWidth="1.5" strokeLinecap="round"/>
-                        </svg>
-                        <span style={{ fontSize: 14, color: "#94A3B8" }}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#EF4444", marginTop: 12 }}>~15 MINUTES/DAY PER ENGINEER</p>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ fontSize: 24, color: "#334155" }}>vs</span>
-                </div>
-
-                <div style={{ flex: "1 1 280px", maxWidth: 380 }}>
-                  <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: "#10B981", letterSpacing: "1px", marginBottom: 8 }}>PHASEONE</p>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {[
-                      "Engineer types in Slack (already open)",
-                      "AI maps to correct CLIN automatically",
-                      "AI translates to DCAA language",
-                      "Compliance score assigned instantly",
-                      "Audit trail logged automatically",
-                      "Unallowable costs flagged in real-time",
-                    ].map((f, i) => (
-                      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                        <Check />
-                        <span style={{ fontSize: 14, color: "#CBD5E1" }}>{f}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#10B981", marginTop: 12 }}>10 SECONDS. DONE.</p>
-                </div>
-              </div>
-
-              <div style={{
-                background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 10, padding: "18px 22px",
-                textAlign: "center",
-              }}>
-                <p style={{ fontSize: 14, color: "#6EE7B7", lineHeight: 1.6, margin: 0 }}>
-                  <strong style={{ color: "#10B981" }}>The math:</strong> A 6-person team spending 15 min/day on timesheets = 375 hours/year of lost engineering time. At $75/hr, that's <strong style={{ color: "white" }}>$28,125/year in productivity burned on paperwork.</strong> PhaseOne costs $7,164/year and gives all of it back.
+              <div style={{ flex: "1 1 300px" }}>
+                <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#F59E0B", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 8 }}>Replaces</p>
+                <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Deltek & Unanet Are Overkill.</h3>
+                <p style={{ fontSize: 15, color: "#94A3B8", lineHeight: 1.65 }}>
+                  Enterprise ERPs cost $50K+ to implement and take months to deploy. They're built for 500-person defense contractors, not 4-person SBIR teams. PhaseOne gives you the timekeeping compliance layer you actually need — deployed in 48 hours, not 6 months.
                 </p>
               </div>
+              <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { label: "Deltek Costpoint", cost: "$50,000+", time: "6+ months" },
+                  { label: "Unanet", cost: "$25,000+", time: "3+ months" },
+                  { label: "PhaseOne", cost: "$2,997", time: "48 hours", highlight: true },
+                ].map((c, i) => (
+                  <div key={i} style={{
+                    display: "flex", gap: 16, alignItems: "center", padding: "10px 16px", borderRadius: 8,
+                    background: c.highlight ? "rgba(59,130,246,0.1)" : "rgba(0,0,0,0.2)",
+                    border: c.highlight ? "1px solid rgba(59,130,246,0.3)" : "1px solid rgba(255,255,255,0.04)",
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: c.highlight ? "#60A5FA" : "#E2E8F0", minWidth: 140 }}>{c.label}</div>
+                    <div style={{ fontSize: 13, color: "#CBD5E1", fontFamily: "'Space Mono',monospace", minWidth: 90 }}>{c.cost}</div>
+                    <div style={{ fontSize: 13, color: "#64748B", fontFamily: "'Space Mono',monospace" }}>{c.time}</div>
+                  </div>
+                ))}
+              </div>
             </div>
+            <p style={{
+              fontSize: 13, color: "#64748B", fontStyle: "italic",
+              textAlign: "center", marginTop: 20,
+            }}>
+              At $2,997, PhaseOne protects $1.5M in potential Phase II funding — <strong style={{ color: "#10B981" }}>0.20% insurance</strong> on your most important contract.
+            </p>
           </section>
 
-          {/* ════════ PRICING ════════ */}
+          {/* PRICING — COLLAPSED TO ONE FLAGSHIP */}
           <section id="pricing" className="sec" style={{ marginBottom: 70 }}>
             <div style={{ textAlign: "center", marginBottom: 36 }}>
               <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>Pricing</p>
-              <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 8 }}>Invisible Compliance for $19/Day</h2>
-              <p style={{ fontSize: 15, color: "#94A3B8", maxWidth: 540, margin: "0 auto" }}>That's less than one hour of engineering time wasted on timesheets. PhaseOne gives you all 375 hours back.</p>
+              <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 8 }}>One Price. One Product. Audit-Ready in 48 Hours.</h2>
+              <p style={{ fontSize: 15, color: "#94A3B8", maxWidth: 560, margin: "0 auto" }}>Month-to-month after setup. Cancel anytime. Annual prepay available at 15% off.</p>
             </div>
 
-            {/* ── THE PRODUCT: $597/mo ── */}
-            <div style={{
-              maxWidth: 720, margin: "0 auto 28px",
-              background: "linear-gradient(180deg, rgba(30,58,95,0.3), rgba(15,23,42,0.5))",
-              border: "1px solid rgba(59,130,246,0.4)", borderRadius: 14, padding: "36px",
-              boxShadow: "0 0 50px rgba(59,130,246,0.08)", position: "relative",
-            }}>
+            {/* FLAGSHIP CARD */}
+            <div style={{ maxWidth: 640, margin: "0 auto 28px" }}>
               <div style={{
-                position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
-                background: "linear-gradient(135deg,#3B82F6,#2563EB)", color: "white",
-                fontSize: 11, fontWeight: 700, letterSpacing: "1.5px", padding: "5px 16px", borderRadius: 100,
-              }}>THE PRODUCT</div>
-
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
-                <div>
-                  <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>PhaseOne Compliance Engine</h3>
-                  <p style={{ fontSize: 14, color: "#94A3B8" }}>Everything your SBIR team needs to stay audit-ready, automatically.</p>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                    <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 48, fontWeight: 700, color: "white" }}>$597</span>
-                    <span style={{ fontSize: 15, color: "#64748B" }}>/month</span>
-                  </div>
-                  <p style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>Month-to-month · Cancel anytime</p>
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10, marginBottom: 24 }}>
-                {[
-                  "Slack-native timekeeping (10-sec daily input)",
-                  "AI translation to DCAA-compliant language",
-                  "Automatic CLIN / labor category mapping",
-                  "Real-time compliance scoring per entry",
-                  "Unallowable cost auto-detection (FAR 31.205)",
-                  "Weekly SF-1408 Pre-Audit reports",
-                  "Contract burn rate monitoring",
-                  "Monthly AI executive summary emails",
-                  "Daily missing-log enforcement (Slack DMs)",
-                  "Compliance portal with audit exports",
-                  "Engineer scorecards & gap detection",
-                  "Priority Slack support (< 4hr response)",
-                ].map((f, i) => (
-                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}><Check /><span style={{ fontSize: 13, color: "#CBD5E1" }}>{f}</span></div>
-                ))}
-              </div>
-
-              <a href={LINKS.bookCall} className="btn btn-primary" style={{ width: "100%", fontSize: 16, padding: "16px", animation: "pulse-ring 2.5s infinite" }}>
-                Book a 15-Min Demo — See It Live <Arrow />
-              </a>
-            </div>
-
-            {/* ── DEPLOYMENT PACKAGES ── */}
-            <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#F59E0B", letterSpacing: "1.5px", textTransform: "uppercase" }}>Choose Your Deployment Package</p>
-              <p style={{ fontSize: 13, color: "#64748B", marginTop: 4 }}>One-time setup fee · Audit-ready in 48 hours</p>
-            </div>
-
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center", marginBottom: 24 }}>
-              {/* QUICK START */}
-              <div className="card" style={{ flex: "1 1 300px", maxWidth: 340, padding: 28 }}>
-                <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 4 }}>Quick Start</h3>
-                <p style={{ fontSize: 12, color: "#64748B", marginBottom: 14 }}>For teams early in their Phase I award</p>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 18 }}>
-                  <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 36, fontWeight: 700, color: "white" }}>$2,000</span>
-                  <span style={{ fontSize: 13, color: "#64748B" }}>one-time</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-                  {[
-                    "Full system deployment in 48 hours",
-                    "AI engine configured for your CLINs",
-                    "Team onboarding & Slack setup",
-                    "SF-1408 alignment verification",
-                    "30-day onboarding support",
-                  ].map((f, i) => (
-                    <div key={i} style={{ display: "flex", gap: 8 }}><Check /><span style={{ fontSize: 13, color: "#CBD5E1" }}>{f}</span></div>
-                  ))}
-                </div>
-                <a href={LINKS.stripeSetup} className="btn btn-secondary" style={{ width: "100%", fontSize: 14 }}>Deploy Quick Start</a>
-              </div>
-
-              {/* FULL COVERAGE */}
-              <div className="card" style={{
-                flex: "1 1 300px", maxWidth: 340, padding: 28,
-                borderColor: "rgba(59,130,246,0.3)",
-                background: "linear-gradient(180deg, rgba(30,58,95,0.2), rgba(15,23,42,0.5))",
+                padding: 36, borderRadius: 16,
+                border: "1px solid rgba(59,130,246,0.4)",
+                background: "linear-gradient(180deg, rgba(30,58,95,0.35), rgba(15,23,42,0.6))",
+                boxShadow: "0 0 60px rgba(59,130,246,0.1)",
+                position: "relative",
               }}>
-                <div style={{ display: "inline-block", background: "rgba(59,130,246,0.15)", color: "#60A5FA", fontSize: 10, fontWeight: 700, letterSpacing: "1px", padding: "3px 10px", borderRadius: 100, marginBottom: 10 }}>MOST POPULAR</div>
-                <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 4 }}>Full Coverage</h3>
-                <p style={{ fontSize: 12, color: "#64748B", marginBottom: 14 }}>For teams 30–90 days into their award</p>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 18 }}>
-                  <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 36, fontWeight: 700, color: "white" }}>$3,500</span>
-                  <span style={{ fontSize: 13, color: "#64748B" }}>one-time</span>
+                <div style={{
+                  position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)",
+                  background: "linear-gradient(135deg,#3B82F6,#2563EB)", color: "white",
+                  fontSize: 11, fontWeight: 700, letterSpacing: "1.5px", padding: "6px 18px", borderRadius: 100,
+                }}>THE PHASEONE PACKAGE</div>
+
+                <div style={{ textAlign: "center", marginBottom: 24, marginTop: 6 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, justifyContent: "center", marginBottom: 6 }}>
+                    <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 52, fontWeight: 700, color: "white" }}>$2,997</span>
+                    <span style={{ fontSize: 14, color: "#94A3B8" }}>setup</span>
+                  </div>
+                  <div style={{ fontSize: 14, color: "#94A3B8" }}>
+                    then <span style={{ fontFamily: "'Space Mono',monospace", color: "white", fontSize: 18, fontWeight: 700 }}>$597</span>
+                    <span> / month</span>
+                  </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 28 }}>
                   {[
-                    "Everything in Quick Start",
-                    "Historical reconstruction from Day 1",
-                    "Retroactive documentation & evidence",
-                    "Gap analysis & remediation plan",
-                    "60-day priority support",
+                    "48-hour deployment, no IT lift",
+                    "Unlimited engineers, unlimited logs",
+                    "Slack-native — no new apps",
+                    "AI DCAA translation + CLIN mapping",
+                    "Unallowable cost auto-flagger",
+                    "Weekly pre-auditor scans",
+                    "Monthly executive summaries",
+                    "SF-1408 gap assessment included",
+                    "Immutable audit vault + CSV export",
+                    "Burn rate & Phase II timing monitor",
+                    "Priority Slack support (< 4 hrs)",
+                    "Multi-agency coverage (DoD, NSF, NASA, NIH, DOE, DHHS)",
                   ].map((f, i) => (
-                    <div key={i} style={{ display: "flex", gap: 8 }}><Check /><span style={{ fontSize: 13, color: "#CBD5E1" }}>{f}</span></div>
+                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <Check /><span style={{ fontSize: 13, color: "#CBD5E1", lineHeight: 1.5 }}>{f}</span>
+                    </div>
                   ))}
                 </div>
-                <a href={LINKS.stripeBundle} className="btn btn-primary" style={{ width: "100%", fontSize: 14, animation: "none" }}>Deploy Full Coverage</a>
-              </div>
-            </div>
 
-            {/* ROI callout */}
-            <div style={{ textAlign: "center", marginTop: 20 }}>
-              <p style={{ fontSize: 13, color: "#64748B", fontStyle: "italic" }}>
-                $597/month protects $1,500,000 in Phase II funding — that's <strong style={{ color: "#10B981" }}>less than 0.04%/month</strong> to keep your most important contract audit-ready.
-              </p>
-            </div>
-          </section>
-
-          {/* ════════ CREDIBILITY / ABOUT ════════ */}
-          <section className="sec" style={{ marginBottom: 70 }}>
-            <div style={{
-              background: "rgba(15,23,42,0.4)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: 14,
-              padding: "36px", display: "flex", gap: 32, flexWrap: "wrap", alignItems: "center",
-            }}>
-              <div style={{ flex: "1 1 300px" }}>
-                <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 8 }}>Who We Are</p>
-                <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Built by Engineers Who've Been Through It</h3>
-                <p style={{ fontSize: 15, color: "#94A3B8", lineHeight: 1.7, marginBottom: 16 }}>
-                  PhaseOne was born from firsthand frustration with DCAA compliance. After watching engineering teams waste hours on timekeeping theater — or worse, fail their pre-award surveys — we built the compliance layer that should have existed from the start.
-                </p>
-                <p style={{ fontSize: 15, color: "#94A3B8", lineHeight: 1.7 }}>
-                  We're not accountants (hire one — we'll work alongside them). We're the engineering-side compliance infrastructure that ensures your daily work is captured, translated, and locked into an audit-ready record before your team even thinks about it.
-                </p>
-              </div>
-              <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
-                {[
-                  "Covers DoD, NSF, NASA, NIH, DOE, DHHS",
-                  "Complements your existing accountant",
-                  "No new software for your team to learn",
-                  "SOC 2 security practices",
-                ].map((f, i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                    <Check /><span style={{ fontSize: 14, color: "#CBD5E1" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* ════════ SOCIAL PROOF ════════ */}
-          <section className="sec" style={{ marginBottom: 70 }}>
-            <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>Trusted By</p>
-              <h2 style={{ fontSize: "clamp(24px,3.5vw,32px)", fontWeight: 700, letterSpacing: "-0.02em" }}>Phase I Teams Rely On PhaseOne</h2>
-            </div>
-            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
-              {[
-                { name: "— Phase I Awardee, DoD", quote: "We went from zero compliance documentation to audit-ready in 48 hours. The Slack integration means my engineers actually do it." },
-                { name: "— CEO, Defense Tech Startup", quote: "The historical reconstruction saved us. We were 60 days in with nothing documented. PhaseOne backfilled everything." },
-                { name: "— SBIR Program Consultant", quote: "I recommend PhaseOne to every founder in my portfolio. The AI timekeeping translation is something I haven't seen anywhere else." },
-              ].map((t, i) => (
-                <div key={i} className="card" style={{ flex: "1 1 280px", maxWidth: 320, padding: 24 }}>
-                  <div style={{ display: "flex", gap: 2, marginBottom: 12 }}>
-                    {[...Array(5)].map((_, j) => (
-                      <svg key={j} width="14" height="14" viewBox="0 0 14 14" fill="#F59E0B"><path d="M7 0L8.57 4.83H13.66L9.55 7.82L11.12 12.65L7 9.66L2.88 12.65L4.45 7.82L0.34 4.83H5.43L7 0Z"/></svg>
-                    ))}
-                  </div>
-                  <p style={{ fontSize: 14, color: "#CBD5E1", lineHeight: 1.65, marginBottom: 14, fontStyle: "italic" }}>"{t.quote}"</p>
-                  <p style={{ fontSize: 13, color: "#64748B", fontWeight: 500 }}>{t.name}</p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <a href={LINKS.stripeFlagship} className="btn btn-primary" style={{ flex: "1 1 200px", fontSize: 15, padding: "15px 28px", animation: "pulse-ring 2.5s infinite" }}>
+                    Deploy This Week <Arrow />
+                  </a>
+                  <a href={LINKS.bookCall} className="btn btn-secondary" style={{ flex: "1 1 200px", fontSize: 15, padding: "15px 28px" }}>
+                    Book a 15-Min Call First
+                  </a>
                 </div>
-              ))}
+              </div>
             </div>
+
+            {/* GUARANTEE BLOCK */}
+            <div style={{
+              maxWidth: 640, margin: "0 auto 28px",
+              background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.2)",
+              borderRadius: 14, padding: "22px 26px",
+              display: "flex", gap: 16, alignItems: "flex-start",
+            }}>
+              <div style={{ flexShrink: 0, marginTop: 2 }}>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <path d="M14 2L4 6.5V14C4 20 8.5 25.5 14 27C19.5 25.5 24 20 24 14V6.5L14 2Z" fill="rgba(16,185,129,0.1)" stroke="#10B981" strokeWidth="1.5"/>
+                  <path d="M9 14L12.5 17.5L19 11" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: "#10B981", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 4 }}>Phase II Readiness Guarantee</p>
+                <h4 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 6 }}>If Your SF-1408 Flags Timekeeping, We Refund 100%.</h4>
+                <p style={{ fontSize: 13, color: "#94A3B8", lineHeight: 1.65, margin: 0 }}>
+                  If DCAA flags timekeeping as a pre-award survey finding during your first 12 months as a client, we refund your full setup fee and continue running PhaseOne at no charge until it passes. We're the only compliance platform putting that in writing.
+                </p>
+              </div>
+            </div>
+
+            {/* DEPLOYMENT OPTIONS */}
+            <details style={{ maxWidth: 640, margin: "0 auto" }}>
+              <summary style={{
+                cursor: "pointer", padding: "14px 20px",
+                background: "rgba(15,23,42,0.4)", border: "1px solid rgba(59,130,246,0.08)",
+                borderRadius: 10, fontSize: 13, color: "#94A3B8", fontFamily: "'Space Mono',monospace", letterSpacing: "0.5px",
+                textAlign: "center", listStyle: "none",
+              }}>
+                OTHER DEPLOYMENT OPTIONS (click to expand)
+              </summary>
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 16 }}>
+                <div className="card" style={{ flex: "1 1 280px", padding: 24 }}>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Quick Start</h4>
+                  <p style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>For teams in the first 30 days of Phase I</p>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
+                    <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 30, fontWeight: 700, color: "white" }}>$2,000</span>
+                    <span style={{ fontSize: 13, color: "#64748B" }}>setup + $597/mo</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5, marginBottom: 14 }}>
+                    Full deployment. Compliance starts from Day 1 of your award going forward.
+                  </p>
+                  <a href={LINKS.stripeQuick} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Quick Start</a>
+                </div>
+                <div className="card" style={{ flex: "1 1 280px", padding: 24 }}>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Full Coverage</h4>
+                  <p style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>For teams 30–90 days post-award</p>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
+                    <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 30, fontWeight: 700, color: "white" }}>$3,500</span>
+                    <span style={{ fontSize: 13, color: "#64748B" }}>setup + $597/mo</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5, marginBottom: 14 }}>
+                    Includes historical reconstruction back to Day 1 of award + gap analysis + remediation.
+                  </p>
+                  <a href={LINKS.stripeFull} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Full Coverage</a>
+                </div>
+                <div className="card" style={{ flex: "1 1 280px", padding: 24 }}>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Monthly Only</h4>
+                  <p style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>For teams with existing compliance infrastructure</p>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
+                    <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 30, fontWeight: 700, color: "white" }}>$597</span>
+                    <span style={{ fontSize: 13, color: "#64748B" }}>/month · no setup</span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5, marginBottom: 14 }}>
+                    Skip the setup package if your team already has CLIN/labor structure configured. We deploy the Slack bot + AI engine against your existing schema.
+                  </p>
+                  <a href={LINKS.stripeMonthly} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Monthly Only</a>
+                </div>
+              </div>
+            </details>
           </section>
 
-          {/* ════════ FAQ ════════ */}
+          {/* FAQ */}
           <section id="faq" className="sec" style={{ marginBottom: 70 }}>
             <div style={{ textAlign: "center", marginBottom: 32 }}>
               <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>FAQ</p>
@@ -623,7 +796,7 @@
             </div>
           </section>
 
-          {/* ════════ FINAL CTA & TALLY EMBED ════════ */}
+          {/* FINAL CTA + TALLY */}
           <section id="readiness" style={{
             borderTop: "1px solid rgba(59,130,246,0.08)",
             background: "linear-gradient(180deg, rgba(30,58,95,0.12) 0%, transparent 100%)",
@@ -634,21 +807,15 @@
               <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, margin: "18px 0 10px", letterSpacing: "-0.02em" }}>
                 Get Ready for Phase II<br/>Before the Pressure Hits.
               </h2>
-              <p style={{ fontSize: 16, color: "#94A3B8", maxWidth: 500, margin: "0 auto 28px", lineHeight: 1.6 }}>
-                Takes 2 minutes. You'll receive a Phase II readiness report scored against your actual award terms.
+              <p style={{ fontSize: 16, color: "#94A3B8", maxWidth: 520, margin: "0 auto 28px", lineHeight: 1.6 }}>
+                Takes 2 minutes. You'll receive a personalized Phase II Readiness Score by email.
               </p>
-              
-              {/* Tally Embed */}
+
               <div style={{ maxWidth: 800, margin: "0 auto 40px" }}>
-                 <iframe 
-                    src="https://tally.so/r/Np0R8G?transparentBackground=1" 
-                    width="100%" 
-                    height="600" 
-                    frameBorder="0" 
-                    marginHeight="0" 
-                    marginWidth="0" 
-                    title="DCAA Readiness Score">
-                  </iframe>
+                <iframe
+                  src="https://tally.so/r/Np0R8G?transparentBackground=1"
+                  width="100%" height="600" frameBorder="0" marginHeight="0" marginWidth="0"
+                  title="Phase II Readiness Score" />
               </div>
 
               <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
@@ -660,16 +827,16 @@
           </section>
 
           {/* FOOTER */}
-          <footer style={{ borderTop: "1px solid rgba(59,130,246,0.05)", padding: "20px 0" }}>
+          <footer style={{ borderTop: "1px solid rgba(59,130,246,0.05)", padding: "24px 0" }}>
             <div className="sec" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Shield size={18} />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>PhaseOne Compliance</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <a href="/terms.html" style={{ fontSize: 11, color: "#475569", textDecoration: "none" }}>Terms of Service</a>
-                <a href="mailto:jaylun@phaseonecompliance.com" style={{ fontSize: 11, color: "#475569", textDecoration: "none" }}>Contact</a>
-                <p style={{ fontSize: 11, color: "#334155" }}>© {new Date().getFullYear()} PhaseOne Compliance</p>
+              <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+                <a href="/terms.html" style={{ fontSize: 11, color: "#64748B", textDecoration: "none" }}>Terms of Service</a>
+                <a href="mailto:jaylun@phaseonecompliance.com" style={{ fontSize: 11, color: "#64748B", textDecoration: "none" }}>jaylun@phaseonecompliance.com</a>
+                <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>© {new Date().getFullYear()} PhaseOne Compliance</p>
               </div>
             </div>
           </footer>
@@ -677,9 +844,8 @@
       );
     }
 
-    // Render the React app to the root div
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<PhaseOneRedesign />);
+    root.render(<PhaseOnePage />);
   </script>
 </body>
 </html>
