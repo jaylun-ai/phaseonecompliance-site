@@ -490,9 +490,9 @@
             <div className="sec">
               <div style={{ textAlign: "center", marginBottom: 40 }}>
                 <p style={{ fontFamily: "'Space Mono',monospace", fontSize: 12, color: "#3B82F6", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>See What You'll Actually Receive</p>
-                <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 12 }}>Download a Real Sample Audit Package</h2>
-                <p style={{ fontSize: 15, color: "#94A3B8", maxWidth: 600, margin: "0 auto", lineHeight: 1.65 }}>
-                  The exact CSV exports and PDF reports you'll receive as a PhaseOne client. Synthetic data from a fictional Navy SBIR contract. No signup. No email gate.
+                <h2 style={{ fontSize: "clamp(26px,4vw,36px)", fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 12 }}>Sample Audit Package — Synthetic Data</h2>
+                <p style={{ fontSize: 15, color: "#94A3B8", maxWidth: 620, margin: "0 auto", lineHeight: 1.65 }}>
+                  The exact CSV exports and PDF reports your team would receive as a PhaseOne client — built against a synthetic dataset modeled on a fictional Navy SBIR contract (Vantage Aerospace Systems). Same structure, same formatting, same compliance math you'd see on your own data. No signup. No email gate.
                 </p>
               </div>
 
@@ -502,13 +502,14 @@
                 border: "1px solid rgba(59,130,246,0.18)", borderRadius: 16,
                 padding: "32px",
               }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12, marginBottom: 24 }}>
                   {[
                     { t: "DCAA Compliance Ledger", d: "90 days · 469 labor entries · CSV" },
                     { t: "Monthly Executive Summary", d: "KPIs · CLIN distribution · findings · PDF" },
                     { t: "SF-1408 Gap Assessment", d: "13 criteria scored · remediation plan · PDF" },
                     { t: "Weekly Pre-Auditor Report", d: "7-rule scan · advisory flags · PDF" },
                     { t: "Phase II Readiness Score", d: "Weighted composite · 30-day plan · PDF" },
+                    { t: "Slack Workflow Examples", d: "4 simulated exchanges · FAR citations · PDF" },
                     { t: "README + Methodology", d: "How to read the package · contact info" },
                   ].map((item, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, padding: "12px 14px", background: "rgba(0,0,0,0.2)", borderRadius: 8, border: "1px solid rgba(59,130,246,0.06)" }}>
@@ -521,14 +522,18 @@
                   ))}
                 </div>
 
-                <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
                   <a href={LINKS.samplePackage} className="btn btn-primary" download style={{ padding: "14px 28px" }}>
                     <Download /> Download Sample Package (.zip)
                   </a>
                   <span style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono',monospace" }}>
-                    ~40 KB · Unzip to view
+                    ~47 KB · Unzip to view
                   </span>
                 </div>
+
+                <p style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono',monospace", textAlign: "center", fontStyle: "italic", margin: 0, lineHeight: 1.5 }}>
+                  All data is synthetic. Every PDF is labeled "SAMPLE OUTPUT" to prevent confusion with real client data.
+                </p>
               </div>
             </div>
           </section>
