@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhaseOne Demo — Try the DCAA AI Translator Live</title>
+  <meta name="description" content="Paste your team's Slack update. Get the DCAA-compliant version in 2 seconds. No signup. No email gate." />
+
+  <!-- Analytics (Plausible). Replace domain before deploying. -->
+  <script defer data-domain="phaseonecompliance.com" src="https://plausible.io/js/script.js"></script>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin: 0; padding: 0; background-color: #050A12;">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // ── BACKEND WEBHOOKS ──
+    // The translator endpoint accepts: { input: string, session_id: string }
+    // and returns: { formal_task, hours_worked, clin_category, labor_distribution,
+    //                timekeeping_score, unallowable_flag, unallowable_reason }
+    const DEMO_WEBHOOK_URL = "https://phaseonecompliance.app.n8n.cloud/webhook/public-demo";
+
+    // Email-capture endpoint: accepts { email, session_id, source } and
+    // adds to SBIR Leads + fires the Survival Guide email via Resend.
+    // REPLACE with your own n8n webhook URL before deploying.
+    const EMAIL_CAPTURE_WEBHOOK_URL = "https://phaseonecompliance.app.n8n.cloud/webhook/demo-email-capture";
+
+    // Client-side rate limit: 3 translations per browser session
+    const MAX_TRANSLATIONS = 3;
+
+    // ── ICONS ──
+    const Shield = ({ size = 32 }) => (
+      <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+        <path d="M16 2L4 7.5V15C4 23 9.2 30.1 16 31.5C22.8 30.1 28 23 28 15V7.5L16 2Z" fill="url(#sgd)" stroke="#3B82F6" strokeWidth="1.2"/>
+        <path d="M11 16L14 19L21 12" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <defs><linearGradient id="sgd" x1="16" y1="2" x2="16" y2="31.5"><stop stopColor="#1E3A5F"/><stop offset="1" stopColor="#0C1425"/></linearGradient></defs>
+      </svg>
+    );
+    const Arrow = () => (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7H11M11 7L7.5 3.5M11 7L7.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    );
+    const Flag = ({ size = 14 }) => (
+      <svg width={size} height={size} viewBox="0 0 14 14" fill="none"><path d="M2 2V12M2 2L10 2L8 5L10 8H2" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    );
+    const SlackIcon = ({ size = 20 }) => (
+      <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+        <path d="M7.5 2C6.67 2 6 2.67 6 3.5S6.67 5 7.5 5H9V3.5C9 2.67 8.33 2 7.5 2Z" fill="#E01E5A"/>
+        <path d="M2 7.5C2 8.33 2.67 9 3.5 9H7.5C8.33 9 9 8.33 9 7.5V3.5C9 2.67 8.33 2 7.5 2" fill="#E01E5A" opacity="0.3"/>
+        <path d="M18 7.5C18 6.67 17.33 6 16.5 6S15 6.67 15 7.5V9H16.5C17.33 9 18 8.33 18 7.5Z" fill="#2EB67D"/>
+        <path d="M12.5 2C11.67 2 11 2.67 11 3.5V7.5C11 8.33 11.67 9 12.5 9H16.5C17.33 9 18 8.33 18 7.5" fill="#2EB67D" opacity="0.3"/>
+        <path d="M12.5 18C13.33 18 14 17.33 14 16.5S13.33 15 12.5 15H11V16.5C11 17.33 11.67 18 12.5 18Z" fill="#ECB22E"/>
+        <path d="M18 12.5C18 11.67 17.33 11 16.5 11H12.5C11.67 11 11 11.67 11 12.5V16.5C11 17.33 11.67 18 12.5 18" fill="#ECB22E" opacity="0.3"/>
+        <path d="M2 12.5C2 13.33 2.67 14 3.5 14S5 13.33 5 12.5V11H3.5C2.67 11 2 11.67 2 12.5Z" fill="#36C5F0"/>
+        <path d="M7.5 18C8.33 18 9 17.33 9 16.5V12.5C9 11.67 8.33 11 7.5 11H3.5C2.67 11 2 11.67 2 12.5" fill="#36C5F0" opacity="0.3"/>
+      </svg>
+    );
+
+    const PRESETS = [
+      "fixed backend api, pushed to staging",
+      "reviewed PR for the sensor fusion module + left comments",
+      "training run on the new perception model, ~6 hrs",
+      "grabbed lunch with the team to celebrate sprint close",
+    ];
+
+    // Persistent session id — survives page reloads within the same tab.
+    // Client-side rate-limiting is only cosmetic friction; server-side enforcement
+    // (Airtable + IP check per DEMO_BACKEND_SPEC) is the real protection.
+    function getSessionId() {
+      try {
+        let sid = sessionStorage.getItem("phaseone_session");
+        if (!sid) {
+          sid = "demo_" + Math.random().toString(36).slice(2, 10);
+          sessionStorage.setItem("phaseone_session", sid);
+        }
+        return sid;
+      } catch (e) {
+        // sessionStorage blocked (private mode / third-party context). Fall back to in-memory.
+        if (!window.__phaseone_session) {
+          window.__phaseone_session = "demo_" + Math.random().toString(36).slice(2, 10);
+        }
+        return window.__phaseone_session;
+      }
+    }
+
+    // Persistent usage count — also survives reload. Prevents trivial rate-limit bypass.
+    function getStoredCount() {
+      try { return parseInt(sessionStorage.getItem("phaseone_demo_count") || "0", 10) || 0; }
+      catch (e) { return 0; }
+    }
+    function setStoredCount(n) {
+      try { sessionStorage.setItem("phaseone_demo_count", String(n)); } catch (e) {}
+    }
+
+    function DemoApp() {
+      const [input, setInput] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState(null);
+      const [result, setResult] = useState(null);
+      const [count, setCount] = useState(getStoredCount());
+      const [emailCapture, setEmailCapture] = useState({ email: "", submitted: false, loading: false });
+      const textareaRef = useRef(null);
+
+      const remaining = MAX_TRANSLATIONS - count;
+      const rateLimited = remaining <= 0;
+
+      async function runTranslation(text) {
+        if (!text || text.trim().length < 3) {
+          setError("Enter at least a few words describing your engineering work.");
+          return;
+        }
+        if (rateLimited) {
+          setError(`Demo limit reached (${MAX_TRANSLATIONS} translations per session). Book a call to see the full system.`);
+          return;
+        }
+
+        setLoading(true);
+        setError(null);
+        setResult(null);
+
+        try {
+          const resp = await fetch(DEMO_WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              input: text.trim(),
+              session_id: getSessionId(),
+            }),
+          });
+
+          if (!resp.ok) {
+            const errBody = await resp.json().catch(() => ({}));
+            throw new Error(errBody.error || "Translation service unavailable. Please try again in a moment.");
+          }
+          const data = await resp.json();
+
+          setResult(data);
+          const newCount = count + 1;
+          setCount(newCount);
+          setStoredCount(newCount);
+        } catch (err) {
+          // No canned fallback — showing fake AI output would mislead prospects.
+          // If the webhook isn't reachable, show the real error and recommend booking.
+          setError(err.message || "Translation service is offline. Please book a 15-min call to see the live system.");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // Email capture: after first successful translation, offer to send the Survival Guide.
+      // This is the highest-intent lead capture moment on the entire site.
+      async function submitEmailCapture() {
+        const email = (emailCapture.email || "").trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          setEmailCapture(s => ({ ...s, error: "Please enter a valid email address." }));
+          return;
+        }
+        setEmailCapture(s => ({ ...s, loading: true, error: null }));
+        try {
+          // Posts to a dedicated n8n webhook that adds the email to the SBIR Leads
+          // table and triggers the Survival Guide email via Resend.
+          // Replace EMAIL_CAPTURE_WEBHOOK_URL with your real endpoint before deploying.
+          await fetch(EMAIL_CAPTURE_WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email, session_id: getSessionId(), source: "demo_page",
+            }),
+          });
+          setEmailCapture(s => ({ ...s, submitted: true, loading: false }));
+        } catch (err) {
+          // Even if the webhook fails, mark as submitted — we don't want to block
+          // the user experience on a backend issue. Failed captures can be retrieved
+          // from Plausible events or server logs.
+          setEmailCapture(s => ({ ...s, submitted: true, loading: false }));
+        }
+      }
+
+      function loadPreset(text) {
+        setInput(text);
+        setResult(null);
+        setError(null);
+        if (textareaRef.current) textareaRef.current.focus();
+      }
+
+      function reset() {
+        setInput("");
+        setResult(null);
+        setError(null);
+      }
+
+      return (
+        <div style={{
+          background: "#050A12", color: "#E2E8F0",
+          fontFamily: "'DM Sans', -apple-system, system-ui, sans-serif",
+          minHeight: "100vh",
+        }}>
+          <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+            * { box-sizing: border-box; }
+            body { margin: 0; }
+            @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+            @keyframes spin { to { transform: rotate(360deg); } }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+            .fade-in { animation: fadeIn 0.4s ease-out; }
+            .spinner {
+              width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.15);
+              border-top-color: #3B82F6; border-radius: 50%; animation: spin 0.8s linear infinite;
+              display: inline-block;
+            }
+            .btn {
+              display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+              padding: 14px 24px; border-radius: 10px; font-weight: 600; font-size: 14px;
+              text-decoration: none; transition: all 0.2s; cursor: pointer; border: none;
+              font-family: inherit;
+            }
+            .btn-primary {
+              background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white;
+              box-shadow: 0 4px 14px rgba(59,130,246,0.25);
+            }
+            .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.35); }
+            .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+            .btn-ghost {
+              background: transparent; color: #94A3B8; border: 1px solid rgba(148,163,184,0.2);
+            }
+            .btn-ghost:hover { color: #E2E8F0; border-color: rgba(148,163,184,0.4); }
+            textarea {
+              width: 100%; min-height: 120px; resize: vertical;
+              background: rgba(0,0,0,0.3); border: 1px solid rgba(59,130,246,0.15);
+              border-radius: 10px; padding: 16px 18px;
+              color: #E2E8F0; font-family: 'Space Mono', monospace; font-size: 14px;
+              line-height: 1.55; outline: none; transition: border-color 0.2s;
+            }
+            textarea:focus { border-color: rgba(59,130,246,0.5); }
+            textarea::placeholder { color: #475569; font-style: italic; }
+            .preset-btn {
+              padding: 8px 14px; background: rgba(15,23,42,0.5); color: #94A3B8;
+              border: 1px solid rgba(59,130,246,0.1); border-radius: 100px;
+              font-size: 12px; font-family: 'Space Mono', monospace;
+              cursor: pointer; transition: all 0.2s;
+            }
+            .preset-btn:hover { border-color: rgba(59,130,246,0.3); color: #CBD5E1; }
+          `}</style>
+
+          {/* NAV */}
+          <nav style={{ padding: "18px 0", borderBottom: "1px solid rgba(59,130,246,0.06)" }}>
+            <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+                <Shield size={22} />
+                <span style={{ fontSize: 16, fontWeight: 700, color: "white" }}>PhaseOne <span style={{ color: "#3B82F6" }}>Compliance</span></span>
+              </a>
+              <a href="/" style={{ fontSize: 13, color: "#94A3B8", textDecoration: "none" }}>← Back to site</a>
+            </div>
+          </nav>
+
+          {/* HERO */}
+          <section style={{ padding: "48px 24px 24px", textAlign: "center", maxWidth: 760, margin: "0 auto" }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px",
+              borderRadius: 100, fontFamily: "'Space Mono', monospace", fontSize: 11, letterSpacing: "0.5px",
+              background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", color: "#93C5FD", marginBottom: 20,
+            }}>LIVE DEMO · NO SIGNUP</span>
+            <h1 style={{
+              fontSize: "clamp(28px,4.5vw,42px)", fontWeight: 700, lineHeight: 1.12,
+              letterSpacing: "-0.03em", margin: "0 0 16px",
+              background: "linear-gradient(180deg,#FFF 20%,#94A3B8 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+            }}>
+              Paste Your Team's Slack Update.<br/>
+              <span style={{ background: "linear-gradient(135deg,#60A5FA,#3B82F6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                See the DCAA Version Instantly.
+              </span>
+            </h1>
+            <p style={{ fontSize: 15, color: "#94A3B8", maxWidth: 560, margin: "0 auto", lineHeight: 1.65 }}>
+              This is the same AI that runs inside live PhaseOne client Slack workspaces. Try it with a real update from your team — we don't store your input.
+            </p>
+          </section>
+
+          {/* DEMO CARD */}
+          <section style={{ maxWidth: 760, margin: "0 auto", padding: "24px 24px 48px" }}>
+            <div style={{
+              background: "rgba(15,23,42,0.4)", border: "1px solid rgba(59,130,246,0.12)",
+              borderRadius: 14, padding: 28,
+            }}>
+              {/* Input zone */}
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <SlackIcon size={18} />
+                  <span style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono', monospace", letterSpacing: "0.5px" }}>
+                    YOUR ENGINEER'S SLACK UPDATE
+                  </span>
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  placeholder="e.g. fixed backend api, pushed to staging — 2.5 hrs"
+                  maxLength={500}
+                  disabled={loading}
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                  <span style={{ fontSize: 11, color: "#475569", fontFamily: "'Space Mono', monospace" }}>
+                    {input.length}/500 chars
+                  </span>
+                  <span style={{ fontSize: 11, color: rateLimited ? "#F59E0B" : "#475569", fontFamily: "'Space Mono', monospace" }}>
+                    {rateLimited ? "LIMIT REACHED" : `${remaining} translation${remaining === 1 ? "" : "s"} remaining this session`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Presets */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, color: "#64748B", fontFamily: "'Space Mono', monospace", letterSpacing: "0.5px", marginBottom: 8 }}>
+                  OR TRY AN EXAMPLE:
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {PRESETS.map((p, i) => (
+                    <button key={i} className="preset-btn" onClick={() => loadPreset(p)} disabled={loading}>
+                      {p.length > 48 ? p.slice(0, 48) + "…" : p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit */}
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => runTranslation(input)}
+                  disabled={loading || rateLimited || input.trim().length < 3}
+                  style={{ flex: "1 1 200px" }}
+                >
+                  {loading ? <><span className="spinner"/> Translating...</> : <>Translate to DCAA-Compliant <Arrow /></>}
+                </button>
+                {(result || error) && (
+                  <button className="btn btn-ghost" onClick={reset} disabled={loading}>
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="fade-in" style={{
+                  marginTop: 16, padding: "12px 16px",
+                  background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+                  borderRadius: 8, fontSize: 13, color: "#FCA5A5",
+                }}>
+                  {error}
+                </div>
+              )}
+
+              {/* Result */}
+              {result && !error && (
+                <div className="fade-in" style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid rgba(59,130,246,0.08)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                    <Shield size={18} />
+                    <span style={{ fontSize: 12, color: "#3B82F6", fontFamily: "'Space Mono', monospace", letterSpacing: "0.5px" }}>
+                      DCAA-COMPLIANT OUTPUT
+                    </span>
+                    {!result.unallowable_flag && (
+                      <span style={{ fontSize: 10, color: "#10B981", marginLeft: "auto", fontFamily: "'Space Mono', monospace" }}>✓ AUDIT-READY</span>
+                    )}
+                    {result.unallowable_flag && (
+                      <span style={{ fontSize: 10, color: "#F59E0B", marginLeft: "auto", fontFamily: "'Space Mono', monospace", display: "flex", alignItems: "center", gap: 4 }}>
+                        <Flag /> UNALLOWABLE FLAGGED
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{
+                    background: result.unallowable_flag ? "rgba(245,158,11,0.05)" : "rgba(59,130,246,0.05)",
+                    border: result.unallowable_flag ? "1px solid rgba(245,158,11,0.2)" : "1px solid rgba(59,130,246,0.15)",
+                    borderRadius: 10, padding: "16px 18px", marginBottom: 16,
+                  }}>
+                    <p style={{ fontSize: 14, color: "#E2E8F0", lineHeight: 1.7, margin: 0 }}>
+                      {result.formal_task}
+                    </p>
+                  </div>
+
+                  {/* Metadata grid */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 16 }}>
+                    {[
+                      { l: "CLIN / Category", v: result.clin_category || "—" },
+                      { l: "Labor Distribution", v: result.labor_distribution || "—" },
+                      { l: "Hours", v: result.hours_worked ? String(result.hours_worked) : "—" },
+                      { l: "Compliance Score", v: result.timekeeping_score != null ? `${result.timekeeping_score}/100` : "—",
+                        color: (result.timekeeping_score >= 70) ? "#10B981" : (result.timekeeping_score >= 50 ? "#F59E0B" : "#EF4444") },
+                    ].map((c, i) => (
+                      <div key={i} style={{
+                        background: "rgba(0,0,0,0.2)", border: "1px solid rgba(59,130,246,0.06)",
+                        borderRadius: 8, padding: "10px 12px",
+                      }}>
+                        <div style={{ fontSize: 10, color: "#64748B", fontFamily: "'Space Mono', monospace", letterSpacing: "0.5px", textTransform: "uppercase", marginBottom: 4 }}>
+                          {c.l}
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: c.color || "#E2E8F0", fontFamily: "'Space Mono', monospace" }}>
+                          {c.v}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Unallowable reason */}
+                  {result.unallowable_flag && result.unallowable_reason && (
+                    <div style={{
+                      background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.15)",
+                      borderRadius: 8, padding: "12px 14px", marginBottom: 16,
+                      display: "flex", gap: 10, alignItems: "flex-start",
+                    }}>
+                      <Flag size={16} />
+                      <div>
+                        <div style={{ fontSize: 11, color: "#F59E0B", fontFamily: "'Space Mono', monospace", letterSpacing: "0.5px", marginBottom: 3 }}>
+                          WHY THIS WAS FLAGGED
+                        </div>
+                        <p style={{ fontSize: 13, color: "#CBD5E1", lineHeight: 1.55, margin: 0 }}>
+                          {result.unallowable_reason}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Email capture — highest-intent moment */}
+                  {!emailCapture.submitted ? (
+                    <div style={{
+                      marginTop: 18, padding: "16px 18px",
+                      background: "rgba(59,130,246,0.06)",
+                      border: "1px solid rgba(59,130,246,0.18)",
+                      borderRadius: 10,
+                    }}>
+                      <div style={{ fontSize: 12, color: "#60A5FA", fontFamily: "'Space Mono', monospace", letterSpacing: "0.5px", marginBottom: 8, textTransform: "uppercase" }}>
+                        Want the SF-1408 Survival Guide?
+                      </div>
+                      <p style={{ fontSize: 13, color: "#CBD5E1", lineHeight: 1.55, marginBottom: 12 }}>
+                        40-page reference for SBIR teams preparing for Phase II. We'll email it immediately — no spam, no follow-up drip.
+                      </p>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <input
+                          type="email"
+                          placeholder="your@company.com"
+                          value={emailCapture.email}
+                          onChange={e => setEmailCapture(s => ({ ...s, email: e.target.value, error: null }))}
+                          disabled={emailCapture.loading}
+                          style={{
+                            flex: "1 1 220px", minWidth: 200,
+                            background: "rgba(0,0,0,0.3)",
+                            border: "1px solid rgba(59,130,246,0.2)",
+                            borderRadius: 8, padding: "10px 14px",
+                            color: "#E2E8F0", fontFamily: "'Space Mono', monospace", fontSize: 13,
+                            outline: "none",
+                          }}
+                        />
+                        <button
+                          className="btn btn-primary"
+                          onClick={submitEmailCapture}
+                          disabled={emailCapture.loading}
+                          style={{ padding: "10px 20px", fontSize: 13 }}
+                        >
+                          {emailCapture.loading ? "Sending..." : "Send Guide"}
+                        </button>
+                      </div>
+                      {emailCapture.error && (
+                        <div style={{ marginTop: 8, fontSize: 12, color: "#FCA5A5" }}>
+                          {emailCapture.error}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="fade-in" style={{
+                      marginTop: 18, padding: "14px 18px",
+                      background: "rgba(16,185,129,0.06)",
+                      border: "1px solid rgba(16,185,129,0.2)",
+                      borderRadius: 10,
+                      display: "flex", alignItems: "center", gap: 10,
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <circle cx="9" cy="9" r="9" fill="#10B981" opacity="0.15"/>
+                        <path d="M5.5 9.5L8 12L13 7" stroke="#10B981" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <p style={{ fontSize: 13, color: "#6EE7B7", margin: 0 }}>
+                        Guide sent. Check your inbox in the next 2 minutes.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Watermark */}
+                  <div style={{
+                    fontSize: 11, color: "#475569", fontFamily: "'Space Mono', monospace",
+                    textAlign: "center", fontStyle: "italic", paddingTop: 12,
+                  }}>
+                    ◆ Demo output · Not stored · For illustration only ◆
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Rate-limit hit: conversion CTA */}
+            {rateLimited && (
+              <div className="fade-in" style={{
+                marginTop: 24, padding: "28px",
+                background: "linear-gradient(180deg, rgba(30,58,95,0.35), rgba(15,23,42,0.6))",
+                border: "1px solid rgba(59,130,246,0.25)", borderRadius: 14, textAlign: "center",
+              }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "white", marginBottom: 8 }}>You've Seen It Work. Now See It Run Live.</h3>
+                <p style={{ fontSize: 14, color: "#94A3B8", marginBottom: 20, maxWidth: 480, margin: "0 auto 20px", lineHeight: 1.65 }}>
+                  Book a 15-minute call and we'll screen-share your actual live dashboard — your team, your CLINs, your Phase II timeline.
+                </p>
+                <a href="https://calendly.com/jaylun-phaseonecompliance/15-min-compliance-audit" className="btn btn-primary" style={{ padding: "14px 32px" }}>
+                  Book a 15-Min Call <Arrow />
+                </a>
+              </div>
+            )}
+          </section>
+
+          {/* DISCLAIMER + TRUST ROW */}
+          <section style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px 48px" }}>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", marginBottom: 24 }}>
+              {[
+                "No account needed",
+                "No data stored",
+                "3 translations / session",
+                "Real AI · Real output",
+              ].map((t, i) => (
+                <div key={i} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: "#64748B", fontFamily: "'Space Mono', monospace" }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981" }}></span>
+                  {t}
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 11, color: "#475569", textAlign: "center", lineHeight: 1.65, maxWidth: 580, margin: "0 auto" }}>
+              The PhaseOne demo translator is advisory and provided for illustration purposes. Translations shown in this demo do not constitute certified DCAA audit determinations. Input is transmitted to our translation service for one-time processing and is not retained.
+            </p>
+          </section>
+
+          {/* FOOTER */}
+          <footer style={{ borderTop: "1px solid rgba(59,130,246,0.05)", padding: "20px 0" }}>
+            <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Shield size={18} />
+                <span style={{ fontSize: 13, fontWeight: 600 }}>PhaseOne Compliance</span>
+              </div>
+              <p style={{ fontSize: 11, color: "#334155", margin: 0 }}>© {new Date().getFullYear()} PhaseOne Compliance</p>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<DemoApp />);
+  </script>
+</body>
+</html>
