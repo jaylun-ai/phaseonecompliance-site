@@ -168,8 +168,12 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email, session_id: getSessionId(), source: "demo_page",
-            }),
+  email,
+  session_id: getSessionId(),
+  source: "demo_page",
+  demo_input: input || "",
+  demo_result: result || null,
+}),
           });
           setEmailCapture(s => ({ ...s, submitted: true, loading: false }));
         } catch (err) {
