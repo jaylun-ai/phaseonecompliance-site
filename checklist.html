@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SBIR Phase II Preparation Checklist — 47 Items That Separate Awards From Denials</title>
+  <meta name="description" content="The ungated 47-item checklist for SBIR teams preparing for Phase II cost-reimbursable conversion. SF-1408 criteria, timekeeping, indirect rate structure, unallowable cost segregation. Free. No email required." />
+  <meta property="og:title" content="SBIR Phase II Preparation Checklist" />
+  <meta property="og:description" content="47 items that separate Phase II awards from denials. Free, no signup." />
+  <meta property="og:type" content="article" />
+
+  <!-- Analytics -->
+  <script defer data-domain="phaseonecompliance.com" src="https://plausible.io/js/script.js"></script>
+
+  <!-- Schema.org HowTo markup for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "SBIR Phase II Preparation Checklist",
+    "description": "47-item checklist for SBIR/STTR Phase I teams preparing for Phase II pre-award survey and cost-reimbursable conversion",
+    "totalTime": "P90D",
+    "step": [
+      {"@type": "HowToStep", "name": "Timekeeping System Audit", "text": "Verify daily labor distribution meets SF-1408 Criterion 2e"},
+      {"@type": "HowToStep", "name": "Indirect Rate Structure", "text": "Establish provisional fringe, overhead, and G&A rates"},
+      {"@type": "HowToStep", "name": "Unallowable Cost Segregation", "text": "Configure FAR Part 31.205 detection in your accounting system"},
+      {"@type": "HowToStep", "name": "Proposal Appendix Preparation", "text": "Generate SF-1408 readiness package for Phase II submission"}
+    ]
+  }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #050A12; color: #E2E8F0;
+      font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+      line-height: 1.6; font-size: 16px;
+    }
+    .container { max-width: 820px; margin: 0 auto; padding: 0 24px; }
+    .narrow { max-width: 720px; }
+
+    /* NAV */
+    nav {
+      padding: 18px 0; border-bottom: 1px solid rgba(59,130,246,0.06);
+      position: sticky; top: 0; background: rgba(5,10,18,0.85);
+      backdrop-filter: blur(10px); z-index: 50;
+    }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-shield {
+      width: 22px; height: 22px; flex-shrink: 0;
+    }
+    .logo-text { font-size: 16px; font-weight: 700; color: white; }
+    .logo-accent { color: #3B82F6; }
+    .nav-cta {
+      background: linear-gradient(135deg, #3B82F6, #2563EB); color: white;
+      padding: 10px 18px; border-radius: 10px; font-weight: 600;
+      text-decoration: none; font-size: 13px;
+      box-shadow: 0 4px 14px rgba(59,130,246,0.25);
+      transition: transform 0.15s;
+    }
+    .nav-cta:hover { transform: translateY(-1px); }
+
+    /* HERO */
+    .hero { padding: 56px 0 40px; text-align: center; }
+    .eyebrow {
+      display: inline-block;
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      color: #3B82F6; letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: clamp(30px, 5vw, 46px);
+      font-weight: 700; line-height: 1.1; letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      background: linear-gradient(180deg, #FFF 30%, #94A3B8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: clamp(15px, 1.8vw, 18px); color: #94A3B8;
+      max-width: 620px; margin: 0 auto 24px; line-height: 1.6;
+    }
+    .hero-meta {
+      display: flex; justify-content: center; gap: 18px; flex-wrap: wrap;
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      color: #64748B; letter-spacing: 0.5px;
+    }
+    .hero-meta span::before { content: "• "; color: #3B82F6; }
+
+    /* KEY FACT CARD */
+    .key-card {
+      background: linear-gradient(180deg, rgba(30,58,95,0.25), rgba(15,23,42,0.6));
+      border: 1px solid rgba(59,130,246,0.18);
+      border-radius: 12px; padding: 24px 28px; margin: 36px auto;
+      max-width: 720px;
+    }
+    .key-card .label {
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      color: #60A5FA; letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .key-card p { color: #CBD5E1; line-height: 1.7; }
+
+    /* SECTIONS */
+    section { padding: 32px 0; }
+    h2 {
+      font-size: 26px; font-weight: 700;
+      letter-spacing: -0.02em; color: white;
+      margin-bottom: 8px;
+    }
+    h2 .num {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px; color: #3B82F6;
+      margin-right: 10px; vertical-align: middle;
+    }
+    h2 .count {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px; color: #64748B;
+      margin-left: 8px; vertical-align: middle;
+      font-weight: 400;
+    }
+    h3 {
+      font-size: 18px; font-weight: 600; color: #60A5FA;
+      margin-top: 24px; margin-bottom: 6px;
+    }
+    .section-intro {
+      color: #94A3B8; margin-bottom: 20px;
+      font-size: 15px; line-height: 1.7;
+    }
+
+    /* CHECKLIST ITEMS */
+    .check-list { list-style: none; margin: 12px 0 20px; }
+    .check-list li {
+      padding: 10px 0 10px 34px;
+      position: relative;
+      font-size: 14.5px; color: #CBD5E1; line-height: 1.6;
+      border-bottom: 1px solid rgba(59,130,246,0.05);
+    }
+    .check-list li:last-child { border-bottom: none; }
+    .check-list li::before {
+      content: "";
+      position: absolute; left: 0; top: 13px;
+      width: 18px; height: 18px;
+      border-radius: 4px;
+      border: 1.5px solid rgba(59,130,246,0.3);
+      background: rgba(59,130,246,0.04);
+    }
+    .check-list li b { color: #E2E8F0; font-weight: 600; }
+    .check-list li .far {
+      display: inline-block;
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      color: #F59E0B; margin-left: 6px;
+    }
+
+    /* DIVIDER */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(59,130,246,0.18), transparent);
+      margin: 32px 0;
+    }
+
+    /* WARNING BOX */
+    .warning {
+      background: rgba(245,158,11,0.06);
+      border-left: 3px solid #F59E0B;
+      padding: 16px 20px; margin: 20px 0;
+      border-radius: 4px;
+    }
+    .warning .label {
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      color: #F59E0B; letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 4px; font-weight: 700;
+    }
+    .warning p { color: #FCD34D; font-size: 14px; line-height: 1.6; }
+
+    /* MID-CTA */
+    .mid-cta {
+      background: linear-gradient(180deg, rgba(30,58,95,0.35), rgba(15,23,42,0.6));
+      border: 1px solid rgba(59,130,246,0.25);
+      border-radius: 14px; padding: 28px; margin: 40px 0;
+      text-align: center;
+    }
+    .mid-cta h3 {
+      color: white; font-size: 20px; margin-bottom: 10px; margin-top: 0;
+    }
+    .mid-cta p {
+      color: #94A3B8; font-size: 14px; max-width: 440px;
+      margin: 0 auto 18px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+      padding: 13px 26px; border-radius: 10px; font-weight: 600; font-size: 14px;
+      text-decoration: none; transition: transform 0.15s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #3B82F6, #2563EB); color: white;
+      box-shadow: 0 4px 14px rgba(59,130,246,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-secondary {
+      background: rgba(59,130,246,0.08); color: #CBD5E1;
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+    .btn-secondary:hover { border-color: rgba(59,130,246,0.5); }
+
+    /* FINAL CTA */
+    .final-cta {
+      border-top: 1px solid rgba(59,130,246,0.08);
+      background: linear-gradient(180deg, rgba(30,58,95,0.12), transparent);
+      padding: 60px 0 70px; text-align: center;
+    }
+    .final-cta h2 {
+      font-size: clamp(24px, 3.5vw, 32px);
+      margin: 18px 0 12px;
+    }
+    .final-cta p {
+      color: #94A3B8; max-width: 520px;
+      margin: 0 auto 24px; font-size: 16px;
+    }
+    .cta-buttons {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    }
+    .cta-buttons .btn { padding: 16px 34px; font-size: 15px; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid rgba(59,130,246,0.05);
+      padding: 24px 0;
+    }
+    .footer-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-links {
+      display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+    }
+    .footer-links a, .footer-links span {
+      font-size: 11px; color: #64748B; text-decoration: none;
+    }
+    .footer-links a:hover { color: #94A3B8; }
+
+    @media (max-width: 680px) {
+      .container { padding: 0 18px; }
+      h2 { font-size: 22px; }
+      .key-card, .mid-cta { padding: 20px; }
+    }
+  </style>
+
+  <!-- NAV -->
+  <nav>
+    <div class="container nav-inner">
+      <a href="/" class="logo">
+        <svg class="logo-shield" viewBox="0 0 32 32" fill="none">
+          <path d="M16 2L4 7.5V15C4 23 9.2 30.1 16 31.5C22.8 30.1 28 23 28 15V7.5L16 2Z" fill="url(#sg)" stroke="#3B82F6" stroke-width="1.2"/>
+          <path d="M11 16L14 19L21 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="sg" x1="16" y1="2" x2="16" y2="31.5"><stop stop-color="#1E3A5F"/><stop offset="1" stop-color="#0C1425"/></linearGradient></defs>
+        </svg>
+        <span class="logo-text">PhaseOne <span class="logo-accent">Compliance</span></span>
+      </a>
+      <a href="https://calendly.com/jaylun-phaseonecompliance/15-min-compliance-audit" class="nav-cta">Book a Call</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container">
+      <div class="eyebrow">Free Reference · No Email Required</div>
+      <h1>The SBIR Phase II<br/>Preparation Checklist</h1>
+      <p class="hero-sub">
+        47 items that separate awarded Phase II contracts from stalled ones. Built from DCAA public audit findings, FAR Part 31 cost principles, and the specific failure patterns we see across SBIR teams entering cost-reimbursable contracting for the first time.
+      </p>
+      <div class="hero-meta">
+        <span>Last updated April 2026</span>
+        <span>~15 min read</span>
+        <span>No signup · No email gate</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- KEY FACT CARD -->
+  <div class="container">
+    <div class="key-card">
+      <div class="label">Why This Checklist Exists</div>
+      <p>
+        Phase I awards are firm-fixed-price, so DCAA rarely audits your accounting system directly. Phase II is different. Phase II awards are cost-reimbursable, which triggers a <b style="color:#fff">Standard Form 1408 pre-award accounting system survey</b> before funds are obligated. The #1 DCAA audit finding — across every contractor size — is timekeeping noncompliance. This checklist is organized around the 13 SF-1408 criteria plus the operational prep work most SBIR teams discover too late.
+      </p>
+    </div>
+  </div>
+
+  <!-- SECTION 1: TIMEKEEPING -->
+  <section>
+    <div class="container narrow">
+      <h2><span class="num">01</span>Timekeeping System<span class="count">9 items</span></h2>
+      <p class="section-intro">
+        SF-1408 Criterion 2e evaluates whether your timekeeping system identifies each employee's labor by cost objective on a daily basis. This is the single most common failure point for SBIR teams transitioning to Phase II. Most teams have software that could be compliant but practices that aren't.
+      </p>
+
+      <ul class="check-list">
+        <li><b>All employees record labor daily</b> — not weekly, not retrospectively. DCAA expects contemporaneous entry at the time of work.</li>
+        <li><b>Every entry identifies the contract or CLIN</b> the labor was performed for. Free-text descriptions without contract attribution do not satisfy the requirement.</li>
+        <li><b>Timestamped audit trail</b> — the system records when each entry was created, not just the date the work was performed.</li>
+        <li><b>No gaps longer than 3 business days</b> in any employee's record over the last 90 days.</li>
+        <li><b>Entries are reviewed and approved</b> by a named supervisor or program manager on at least a weekly cadence.</li>
+        <li><b>Corrections are tracked separately</b> from original entries, with reason codes and an audit log.</li>
+        <li><b>The CEO and all executives record labor</b> — no exemptions. DCAA has no tolerance for "my time doesn't need to be tracked" from anyone on payroll.</li>
+        <li><b>Part-time and contract employees</b> recording labor use the same system and standards as full-time staff.</li>
+        <li><b>Written timekeeping policy</b> exists as a named document (e.g., SOP-FIN-001) that can be produced on request.</li>
+      </ul>
+
+      <div class="warning">
+        <div class="label">Common Failure</div>
+        <p>Teams deploy a DCAA-compliant timekeeping product, train engineers, and stop enforcing use after two weeks. At Phase II application time, the system contains sporadic entries with multi-week gaps. Backfilling retroactively creates records with the same timestamp as today — a signal auditors catch immediately.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="section-divider"></div></div>
+
+  <!-- SECTION 2: LABOR DISTRIBUTION -->
+  <section>
+    <div class="container narrow">
+      <h2><span class="num">02</span>Labor Distribution &amp; CLIN Mapping<span class="count">6 items</span></h2>
+      <p class="section-intro">
+        SF-1408 Criteria 2b, 2f, and 2i. Every direct cost must be traceable to the specific contract and CLIN it was incurred for. Multi-CLIN contracts compound this — you need CLIN-level discipline, not just contract-level.
+      </p>
+
+      <ul class="check-list">
+        <li><b>Direct labor accounts are separate</b> from indirect labor accounts in your general ledger.</li>
+        <li><b>Each active contract has a dedicated job code</b> or project code that flows from labor entry through to the GL.</li>
+        <li><b>CLIN selection happens at labor entry</b> — not at invoice time. Engineers pick from a defined list of active CLINs at the moment they log work.</li>
+        <li><b>Monthly reconciliation</b> of timekeeping system totals to payroll run totals, with variance under 1% documented.</li>
+        <li><b>Cross-coding is allowed</b> only with written PM justification captured in the audit trail.</li>
+        <li><b>Labor distribution report is generated monthly</b> and can be produced on demand for any historical month.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="container"><div class="section-divider"></div></div>
+
+  <!-- SECTION 3: INDIRECT COSTS -->
+  <section>
+    <div class="container narrow">
+      <h2><span class="num">03</span>Indirect Cost Pool Structure<span class="count">7 items</span></h2>
+      <p class="section-intro">
+        SF-1408 Criterion 2c. Indirect costs don't belong to any single contract but still need to be allocated. The government wants to see a logical, consistent method — typically separate pools for fringe benefits, overhead, and general &amp; administrative (G&amp;A) costs.
+      </p>
+
+      <ul class="check-list">
+        <li><b>Fringe benefits pool</b> defined and actively accumulating costs (payroll taxes, health insurance, 401k, PTO).</li>
+        <li><b>G&amp;A pool</b> defined separately from overhead (legal, executive, finance, HR, accounting).</li>
+        <li><b>Overhead pool</b> defined if you have shared engineering resources beyond fringe and G&amp;A. Many small firms combine overhead into G&amp;A — that's acceptable.</li>
+        <li><b>Written indirect rate memorandum</b> exists, calculated by a CPA, showing the math behind each provisional rate.</li>
+        <li><b>Provisional rates applied consistently</b> — you bill at provisional rates throughout the year, reconcile to actuals via the Incurred Cost Submission (ICS).</li>
+        <li><b>Allocation base is consistent period-over-period</b> — typically direct labor dollars. Changing bases mid-year is a red flag.</li>
+        <li><b>Indirect rate memo is no older than 12 months</b> and reflects current year's pool dynamics.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="container"><div class="section-divider"></div></div>
+
+  <!-- MID-CTA: Guide -->
+  <div class="container">
+    <div class="mid-cta">
+      <h3>Want the Deeper Reference?</h3>
+      <p>We built a 23-page SF-1408 Survival Guide that walks through every criterion with failure patterns, remediation timelines, and a proposal appendix template. Same URL, same ungated approach.</p>
+      <a href="/PhaseOne_SF-1408_Survival_Guide.docx" class="btn btn-primary" download>Download the Full Guide (.docx)</a>
+    </div>
+  </div>
+
+  <!-- SECTION 4: UNALLOWABLE COSTS -->
+  <section>
+    <div class="container narrow">
+      <h2><span class="num">04</span>Unallowable Cost Segregation<span class="count">8 items</span></h2>
+      <p class="section-intro">
+        SF-1408 Criterion 2h. FAR Part 31.205 defines dozens of cost categories that cannot be billed to the government under any circumstance. A cost doesn't need to be intentionally charged to be a problem — if your accountant books team lunches to a direct labor account, you have a finding.
+      </p>
+
+      <ul class="check-list">
+        <li><b>Unallowable cost accounts exist</b> in your chart of accounts as dedicated GL buckets separate from billable overhead.</li>
+        <li><b>Meals and entertainment segregated</b> <span class="far">FAR 31.205-14, 31.205-46</span> — team lunches, happy hours, client dinners, client coffee.</li>
+        <li><b>Alcohol expenses segregated</b> <span class="far">FAR 31.205-51</span> — always unallowable regardless of context.</li>
+        <li><b>First-class airfare segregated</b> <span class="far">FAR 31.205-46</span> — coach is the rule, first-class requires written justification.</li>
+        <li><b>Gifts segregated</b> <span class="far">FAR 31.205-13</span> — client gifts, holiday gifts, employee gifts all count.</li>
+        <li><b>Lobbying and political contributions segregated</b> <span class="far">FAR 31.205-22</span>.</li>
+        <li><b>Written unallowable cost policy</b> exists and is applied consistently month-over-month.</li>
+        <li><b>Last 12 months of overhead transactions reviewed</b> for misclassified unallowable entries.</li>
+      </ul>
+
+      <div class="warning">
+        <div class="label">The Compounding Risk</div>
+        <p>An unallowable cost improperly booked to overhead doesn't just inflate that single invoice — it flows into your overhead rate, which gets applied to every cost-reimbursable invoice you send. A $40,000 mistake in one year's overhead pool can become $400,000 in disallowed costs by the time auditors identify the pattern.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container"><div class="section-divider"></div></div>
+
+  <!-- SECTION 5: ACCOUNTING SYSTEM OPERATION -->
+  <section>
+    <div class="container narrow">
+      <h2><span class="num">05</span>Accounting System Operation<span class="count">7 items</span></h2>
+      <p class="section-intro">
+        SF-1408 Criteria 2d, 2g, and Section 3. The auditor isn't just evaluating your configuration — they want to see operational evidence. Systems that have been run through monthly close cycles with real data are credible. Configurations that have never been tested are not.
+      </p>
+
+      <ul class="check-list">
+        <li><b>Monthly close completes within 10 business days</b> of month-end. Labor distributed, indirect pools accumulated, cost reports available.</li>
+        <li><b>Labor-to-GL reconciliation procedure</b> is documented and has a named owner who signs off monthly.</li>
+        <li><b>At least 3 monthly close cycles</b> have been executed with real data before Phase II submission.</li>
+        <li><b>Test cost voucher has been generated</b> — a practice run showing direct labor + fringe + overhead + G&amp;A in invoice format, even if run against internal overhead.</li>
+        <li><b>Monthly cost reports by contract</b> can be produced on demand for any historical month.</li>
+        <li><b>Voucher preparation procedure is written</b> and can be executed by someone other than the accountant who set up the system.</li>
+        <li><b>Cross-training completed</b> — at least two people in the organization understand the indirect rate structure and can answer auditor questions.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="container"><div class="section-divider"></div></div>
+
+  <!-- SECTION 6: PROPOSAL APPENDIX -->
+  <section>
+    <div class="container narrow">
+      <h2><span class="num">06</span>Phase II Proposal Appendix<span class="count">6 items</span></h2>
+      <p class="section-intro">
+        The government doesn't require an SF-1408 readiness package with your proposal — but submitting one proactively signals maturity, shortens the pre-award survey timeline by 30-90 days, and moves your award into a faster review lane.
+      </p>
+
+      <ul class="check-list">
+        <li><b>Cover memo</b> addressed to the contracting officer identifying your SF-1408 readiness and referencing the specific criteria the appendix addresses.</li>
+        <li><b>Chart of accounts summary</b> (1-2 pages) showing direct/indirect segregation and unallowable account structure.</li>
+        <li><b>Indirect rate memorandum</b> (2-4 pages) prepared by your CPA with provisional rate calculations and allocation methodology.</li>
+        <li><b>Timekeeping policy</b> (1-2 pages) stating daily entry requirements, contract attribution, and review process.</li>
+        <li><b>Sample labor distribution report</b> from the most recent complete month, redacted if needed, showing hours by employee by contract.</li>
+        <li><b>SF-1408 self-assessment summary</b> (1 page) showing your internal score against each criterion with remediation plan for any item below 85.</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="container"><div class="section-divider"></div></div>
+
+  <!-- SECTION 7: CPA PARTNER -->
+  <section>
+    <div class="container narrow">
+      <h2><span class="num">07</span>CPA Partner &amp; External Support<span class="count">4 items</span></h2>
+      <p class="section-intro">
+        Your accountant handles the books. Your compliance layer handles daily labor capture. You need both, and you need them to work together. Most SBIR teams fail here by assuming one party is handling what the other expects them to handle.
+      </p>
+
+      <ul class="check-list">
+        <li><b>GovCon-experienced CPA engaged</b> — not a general small-business CPA. Ask for their current SBIR client count and most recent ICS filing experience.</li>
+        <li><b>4-8 working session hours per month</b> during Phase II preparation (month 1-3 post-award is the heavy lift).</li>
+        <li><b>Clear division of responsibilities</b> documented in writing between CPA (GL, rates, ICS) and compliance platform (labor capture, CLIN mapping, audit trail).</li>
+        <li><b>Disaster continuity plan</b> — if your CPA leaves mid-Phase II, at least one person internally can walk through every part of the system.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta">
+    <div class="container">
+      <svg width="36" height="36" viewBox="0 0 32 32" fill="none" style="margin: 0 auto;">
+        <path d="M16 2L4 7.5V15C4 23 9.2 30.1 16 31.5C22.8 30.1 28 23 28 15V7.5L16 2Z" fill="url(#sg2)" stroke="#3B82F6" stroke-width="1.2"/>
+        <path d="M11 16L14 19L21 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs><linearGradient id="sg2" x1="16" y1="2" x2="16" y2="31.5"><stop stop-color="#1E3A5F"/><stop offset="1" stop-color="#0C1425"/></linearGradient></defs>
+      </svg>
+      <h2>Your Self-Assessment Takes 30 Minutes.<br/>The Conversation Takes 15.</h2>
+      <p>Run through the checklist against your current setup. If any section scores below 85%, book a call. We'll walk through the gaps on a shared screen and tell you whether PhaseOne's timekeeping layer is the right piece, or whether you need something else entirely. No pitch deck.</p>
+      <div class="cta-buttons">
+        <a href="https://calendly.com/jaylun-phaseonecompliance/15-min-compliance-audit" class="btn btn-primary">Book a 15-Min Phase II Readiness Check →</a>
+        <a href="/demo.html" class="btn btn-secondary">Try the AI Demo First</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-inner">
+      <div class="logo">
+        <svg class="logo-shield" viewBox="0 0 32 32" fill="none">
+          <path d="M16 2L4 7.5V15C4 23 9.2 30.1 16 31.5C22.8 30.1 28 23 28 15V7.5L16 2Z" fill="url(#sg3)" stroke="#3B82F6" stroke-width="1.2"/>
+          <path d="M11 16L14 19L21 12" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs><linearGradient id="sg3" x1="16" y1="2" x2="16" y2="31.5"><stop stop-color="#1E3A5F"/><stop offset="1" stop-color="#0C1425"/></linearGradient></defs>
+        </svg>
+        <span class="logo-text">PhaseOne Compliance</span>
+      </div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/demo.html">Live Demo</a>
+        <a href="/terms.html">Terms</a>
+        <a href="mailto:jaylun@phaseonecompliance.com">Contact</a>
+        <span>© 2026 PhaseOne Compliance</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
