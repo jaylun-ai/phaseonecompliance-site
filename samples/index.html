@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sample Audit Package — PhaseOne Compliance</title>
+<meta name="description" content="Seven artifacts illustrating the DCAA-aligned labor distribution pipeline. Renders in-browser. No download. No archive.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-root: #030711;
+    --bg-surface: #0A1628;
+    --bg-elevated: #0F1D32;
+    --bg-card: rgba(15, 29, 50, 0.55);
+    --bg-card-hover: rgba(59, 130, 246, 0.06);
+    --blue-500: #3B82F6;
+    --blue-400: #60A5FA;
+    --blue-300: #93C5FD;
+    --green-500: #10B981;
+    --amber-500: #F59E0B;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-dim: #64748B;
+    --text-muted: #475569;
+    --border: rgba(59, 130, 246, 0.12);
+    --border-strong: rgba(59, 130, 246, 0.28);
+    --mono: 'Space Mono', 'Courier New', monospace;
+    --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg-root);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    line-height: 1.55;
+  }
+
+  .grid-bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center top, black 0%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center top, black 0%, transparent 75%);
+  }
+
+  .glow {
+    position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 900px; height: 600px;
+    background: radial-gradient(ellipse, rgba(59,130,246,0.12), transparent 65%);
+    z-index: 0; pointer-events: none; filter: blur(20px);
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 1080px; margin: 0 auto;
+    padding: 40px 28px 80px;
+  }
+
+  /* ─── NAV ─── */
+  nav.topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  .brand-shield {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--blue-500), var(--blue-600, #2563EB));
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 15px;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.25);
+  }
+  .brand-name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .brand-tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+    color: var(--text-dim); text-transform: uppercase;
+    display: block; margin-top: 1px;
+  }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .back-link:hover {
+    color: var(--blue-400);
+    border-color: var(--border-strong);
+    background: var(--bg-card-hover);
+  }
+
+  /* ─── HERO ─── */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--blue-400);
+    margin-bottom: 14px;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before {
+    content: ''; width: 24px; height: 1px; background: var(--blue-500);
+  }
+  h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    max-width: 720px;
+  }
+  h1 .accent {
+    color: var(--blue-400);
+    display: inline-block;
+    position: relative;
+  }
+  .lede {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 680px;
+    line-height: 1.6;
+  }
+
+  /* ─── POSTURE STRIP ─── */
+  .posture {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    margin-top: 36px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .posture-item {
+    padding: 16px 18px;
+    background: var(--bg-surface);
+  }
+  .posture-label {
+    font-family: var(--mono);
+    font-size: 9.5px; letter-spacing: 1.8px; text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .posture-value {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .posture-value.mono { font-family: var(--mono); font-size: 12px; }
+  .posture-value.ok { color: var(--green-500); }
+
+  /* ─── SECTION ─── */
+  section {
+    margin-top: 64px;
+  }
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title {
+    font-size: 13px;
+    font-family: var(--mono);
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .section-count {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px;
+    color: var(--text-dim);
+  }
+
+  /* ─── ARTIFACT GRID ─── */
+  .artifact-grid {
+    display: grid; grid-template-columns: 1fr; gap: 14px;
+  }
+  .artifact {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: 22px;
+    align-items: start;
+    padding: 22px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .artifact::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, var(--blue-500) 0%, transparent 100%);
+    opacity: 0; transition: opacity 0.18s ease;
+    pointer-events: none; mix-blend-mode: overlay;
+  }
+  .artifact:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-card-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -12px rgba(59,130,246,0.18);
+  }
+  .artifact:hover .artifact-arrow { transform: translateX(4px); color: var(--blue-400); }
+  .artifact:hover .artifact-num { color: var(--blue-400); border-color: var(--border-strong); }
+
+  .artifact-num {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 1.5px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(59,130,246,0.04);
+    transition: all 0.18s ease;
+  }
+  .artifact-body {
+    min-width: 0;
+  }
+  .artifact-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    letter-spacing: -0.01em;
+  }
+  .artifact-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+  .artifact-meta {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    align-items: center;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .chip.pdf { color: var(--blue-300); background: rgba(59,130,246,0.08); }
+  .chip.html { color: #A78BFA; background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.2); }
+  .chip.dim { color: var(--text-dim); }
+  .chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .artifact-arrow {
+    color: var(--text-dim);
+    font-size: 20px;
+    transition: all 0.2s ease;
+    line-height: 44px;
+    font-family: var(--mono);
+  }
+
+  /* ─── READING PATHS ─── */
+  .reading-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .path-card {
+    padding: 20px 22px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .path-role {
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--blue-400);
+    margin-bottom: 8px;
+  }
+  .path-steps {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+  }
+  .path-steps .arrow { color: var(--text-dim); padding: 0 2px; }
+  .path-reason {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* ─── TRUST BLOCK ─── */
+  .trust {
+    margin-top: 64px;
+    padding: 28px 30px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+  .trust h3 {
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--blue-400);
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  .trust p {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .trust strong { color: var(--text-primary); font-weight: 500; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    margin-top: 72px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between;
+    gap: 20px;
+  }
+  .footer-meta {
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .footer-cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 11px 22px;
+    background: var(--blue-500);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 10px -2px rgba(59,130,246,0.3);
+  }
+  .footer-cta:hover {
+    background: var(--blue-400);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px -2px rgba(59,130,246,0.4);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.5s ease forwards; opacity: 0; }
+  .fade-in:nth-child(1) { animation-delay: 0.02s; }
+  .fade-in:nth-child(2) { animation-delay: 0.06s; }
+  .fade-in:nth-child(3) { animation-delay: 0.10s; }
+  .fade-in:nth-child(4) { animation-delay: 0.14s; }
+  .fade-in:nth-child(5) { animation-delay: 0.18s; }
+  .fade-in:nth-child(6) { animation-delay: 0.22s; }
+  .fade-in:nth-child(7) { animation-delay: 0.26s; }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 640px) {
+    .container { padding: 24px 18px 60px; }
+    nav.topbar { margin-bottom: 36px; padding-bottom: 20px; }
+    .brand-name { font-size: 13px; }
+    .back-link { padding: 6px 10px; font-size: 10px; }
+    section { margin-top: 44px; }
+    .artifact {
+      grid-template-columns: 40px 1fr;
+      gap: 14px;
+      padding: 18px 18px;
+    }
+    .artifact-num { width: 36px; height: 36px; font-size: 10px; }
+    .artifact-arrow { display: none; }
+    .trust { grid-template-columns: 1fr; gap: 20px; padding: 22px 22px; }
+    .posture { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+  <div class="glow"></div>
+
+  <div class="container">
+    <nav class="topbar">
+      <a href="/" class="brand" aria-label="PhaseOne Compliance home">
+        <div class="brand-shield">P</div>
+        <div>
+          <div class="brand-name">PhaseOne Compliance</div>
+          <span class="brand-tag">DCAA-aligned labor distribution</span>
+        </div>
+      </a>
+      <a href="/#sample" class="back-link">← Back to site</a>
+    </nav>
+
+    <header>
+      <div class="eyebrow">Sample Audit Package · 7 Artifacts</div>
+      <h1>What a Phase I contractor's<br><span class="accent">Audit Vault</span> actually produces.</h1>
+      <p class="lede">
+        Seven artifacts drawn from one month of a synthetic Navy SBIR Phase I — <strong style="color:var(--text-primary);font-weight:500">Vantage Aerospace Systems, contract N68335-26-C-0147</strong>. Every entry is fabricated. The methodology is real. Each file renders in-browser in a new tab. Nothing downloads.
+      </p>
+
+      <div class="posture">
+        <div class="posture-item">
+          <div class="posture-label">Package scope</div>
+          <div class="posture-value">6 PDFs + 1 HTML viewer</div>
+        </div>
+        <div class="posture-item">
+          <div class="posture-label">Scenario period</div>
+          <div class="posture-value mono">Mar&nbsp;1–31, 2026</div>
+        </div>
+        <div class="posture-item">
+          <div class="posture-label">Ledger entries</div>
+          <div class="posture-value mono">470</div>
+        </div>
+        <div class="posture-item">
+          <div class="posture-label">Data integrity</div>
+          <div class="posture-value ok">Watermarked · synthetic</div>
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="section-head">
+        <div class="section-title">The artifacts</div>
+        <div class="section-count">01 — 07</div>
+      </div>
+
+      <div class="artifact-grid">
+
+        <a class="artifact fade-in" href="/samples/monthly-executive-summary.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="artifact-num">01</div>
+          <div class="artifact-body">
+            <div class="artifact-title">Monthly Executive Summary</div>
+            <div class="artifact-desc">
+              One-page rollup: compliant hours, CLIN distribution, unallowable flags, engineer breakdown, and 30-day actions. The 5-minute read before everything else.
+            </div>
+            <div class="artifact-meta">
+              <span class="chip pdf"><span class="chip-dot"></span>PDF</span>
+              <span class="chip dim">3 pages · Opens in new tab</span>
+            </div>
+          </div>
+          <div class="artifact-arrow">→</div>
+        </a>
+
+        <a class="artifact fade-in" href="/samples/sf1408-gap-assessment.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="artifact-num">02</div>
+          <div class="artifact-body">
+            <div class="artifact-title">SF-1408 Gap Assessment</div>
+            <div class="artifact-desc">
+              Line-by-line readiness posture against the 10 criteria of the Pre-Award Accounting System Adequacy Survey. What passes, what doesn't, and what to fix before Phase II.
+            </div>
+            <div class="artifact-meta">
+              <span class="chip pdf"><span class="chip-dot"></span>PDF</span>
+              <span class="chip dim">Opens in new tab</span>
+            </div>
+          </div>
+          <div class="artifact-arrow">→</div>
+        </a>
+
+        <a class="artifact fade-in" href="/samples/weekly-pre-auditor-report.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="artifact-num">03</div>
+          <div class="artifact-body">
+            <div class="artifact-title">Weekly Pre-Auditor Report</div>
+            <div class="artifact-desc">
+              Seven-rule automated scan of the week's ledger — what a DCAA auditor would flag if they opened the book today. Caught 6 unallowable-cost events this month.
+            </div>
+            <div class="artifact-meta">
+              <span class="chip pdf"><span class="chip-dot"></span>PDF</span>
+              <span class="chip dim">Opens in new tab</span>
+            </div>
+          </div>
+          <div class="artifact-arrow">→</div>
+        </a>
+
+        <a class="artifact fade-in" href="/samples/slack-workflow-examples.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="artifact-num">04</div>
+          <div class="artifact-body">
+            <div class="artifact-title">Slack Workflow Examples</div>
+            <div class="artifact-desc">
+              Four real-shape before/after translations — raw engineer Slack message to DCAA-compliant ledger entry with FAR citations and the AI reasoning trail. This is the mechanism.
+            </div>
+            <div class="artifact-meta">
+              <span class="chip pdf"><span class="chip-dot"></span>PDF</span>
+              <span class="chip dim">7 pages · Opens in new tab</span>
+            </div>
+          </div>
+          <div class="artifact-arrow">→</div>
+        </a>
+
+        <a class="artifact fade-in" href="/samples/phase-ii-readiness-score.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="artifact-num">05</div>
+          <div class="artifact-body">
+            <div class="artifact-title">Phase II Readiness Score</div>
+            <div class="artifact-desc">
+              Weighted composite readiness metric across 10 SF-1408 criteria plus a 30-day action plan. The artifact a PI presents to the CFO before committing to the Phase II timeline.
+            </div>
+            <div class="artifact-meta">
+              <span class="chip pdf"><span class="chip-dot"></span>PDF</span>
+              <span class="chip dim">Opens in new tab</span>
+            </div>
+          </div>
+          <div class="artifact-arrow">→</div>
+        </a>
+
+        <a class="artifact fade-in" href="/samples/dcaa-compliance-ledger.html" target="_blank" rel="noopener noreferrer">
+          <div class="artifact-num">06</div>
+          <div class="artifact-body">
+            <div class="artifact-title">DCAA Compliance Ledger</div>
+            <div class="artifact-desc">
+              All 470 entries, filterable by engineer / CLIN / allowability status with search and pagination. The Audit Vault as an auditor would see it — interrogate the raw data shape.
+            </div>
+            <div class="artifact-meta">
+              <span class="chip html"><span class="chip-dot"></span>HTML Viewer</span>
+              <span class="chip dim">Interactive · No fetches · No cookies</span>
+            </div>
+          </div>
+          <div class="artifact-arrow">→</div>
+        </a>
+
+        <a class="artifact fade-in" href="/samples/readme-methodology.pdf" target="_blank" rel="noopener noreferrer">
+          <div class="artifact-num">07</div>
+          <div class="artifact-body">
+            <div class="artifact-title">README &amp; Methodology</div>
+            <div class="artifact-desc">
+              Framing: what's synthetic vs. methodology, regulatory basis (FAR / DFARS / DCAA CAM), the 48-hour deployment posture, and a 7-question self-evaluation checklist.
+            </div>
+            <div class="artifact-meta">
+              <span class="chip pdf"><span class="chip-dot"></span>PDF</span>
+              <span class="chip dim">5 pages · Opens in new tab</span>
+            </div>
+          </div>
+          <div class="artifact-arrow">→</div>
+        </a>
+
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div class="section-title">Suggested reading order</div>
+        <div class="section-count">By role</div>
+      </div>
+
+      <div class="reading-grid">
+        <div class="path-card">
+          <div class="path-role">For the PI</div>
+          <div class="path-steps">01 <span class="arrow">→</span> 05 <span class="arrow">→</span> 02 <span class="arrow">→</span> 04 <span class="arrow">→</span> 03 <span class="arrow">→</span> 06</div>
+          <div class="path-reason">Executive posture first, then readiness score, gap assessment, the mechanism, the weekly control, then raw data.</div>
+        </div>
+        <div class="path-card">
+          <div class="path-role">For the CFO</div>
+          <div class="path-steps">02 <span class="arrow">→</span> 06 <span class="arrow">→</span> 01 <span class="arrow">→</span> 03</div>
+          <div class="path-reason">Form 1408 first — that's the audit-posture question. Then raw ledger for data integrity, rollup, then the weekly control artifact.</div>
+        </div>
+        <div class="path-card">
+          <div class="path-role">Technical evaluator</div>
+          <div class="path-steps">04 <span class="arrow">→</span> 03 <span class="arrow">→</span> 06 <span class="arrow">→</span> 02</div>
+          <div class="path-reason">Translation mechanism and raw data matter more than summary. Start with the Slack vignettes, end at Form 1408.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="trust">
+      <div>
+        <h3>Every figure is synthetic</h3>
+        <p>
+          Vantage Aerospace Systems is <strong>fictional</strong>. So is contract N68335-26-C-0147 and every engineer, hour, and CLIN value in the package. Every PDF carries a diagonal &ldquo;SAMPLE OUTPUT &mdash; SYNTHETIC DATA&rdquo; watermark that can't be cropped out without removing content. Real client data in a marketing asset is a confidentiality breach &mdash; particularly under DFARS 252.204-7012.
+        </p>
+      </div>
+      <div>
+        <h3>The methodology is real</h3>
+        <p>
+          CLIN-to-SOW mapping, FAR Part 31.205 allowability rules, FAR 31.201-4 allocability tests, DCAA CAM §5-909 contemporaneous evidence standard, SF-1408 pre-award accounting-system criteria &mdash; these are the rules PhaseOne's production pipeline applies to real clients. The fiction is the <em>data</em>, not the <em>logic</em>.
+        </p>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-meta">v1 · Renders in-browser · No archive · No executables</div>
+      <a class="footer-cta" href="/#audit">Book a 15-minute audit call →</a>
+    </footer>
+  </div>
+</body>
+</html>
