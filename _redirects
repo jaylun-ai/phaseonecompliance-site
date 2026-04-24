@@ -1,0 +1,14 @@
+# PhaseOne Compliance — Netlify _redirects
+# ----------------------------------------------------------------------------
+# Catches any lingering links to the old ZIP-based sample distribution and
+# sends them to the inline sample package anchor. 301 so search engines
+# update their index.
+
+/PhaseOne_Sample_Audit_Package.zip    /samples/    301
+/sample.zip                           /samples/    301
+/samples.zip                          /samples/    301
+/*.zip                                /samples/    301
+
+# Convenience short-links (optional — safe to leave in)
+/sample                               /samples/    302
+/samples.html                         /samples/    301

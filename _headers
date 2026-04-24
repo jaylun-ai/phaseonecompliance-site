@@ -1,0 +1,26 @@
+# PhaseOne Compliance — Netlify _headers
+# ----------------------------------------------------------------------------
+# Forces inline PDF rendering (no forced download) and applies security
+# headers appropriate for a DCAA/CMMC-positioned product. EDR stacks that
+# quarantine unsigned archives should have no reason to flag these responses.
+
+/samples/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/samples/*.pdf
+  Content-Disposition: inline
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/samples/*.html
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline'; frame-ancestors 'self'
+  Cache-Control: public, max-age=1800, must-revalidate
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
