@@ -42,7 +42,7 @@
       stripeFull:     "https://buy.stripe.com/6oU7sL0CGf06g3xc55aIM05",
       // Monthly-only: $597/mo for teams that don't need setup (added post-launch)
       stripeMonthly:  "https://buy.stripe.com/bJeeVdcloaJQ8B52uvaIM06",
-      samplePackage:  "/PhaseOne_Sample_Audit_Package.zip",
+      samplePackage:  "/samples/",
       tryDemo:        "/demo.html",
     };
 
@@ -567,12 +567,12 @@ function ROICalculator() {
                 </div>
 
                 <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                  <a href={LINKS.samplePackage} className="btn btn-primary" download style={{ padding: "14px 28px" }}>
-                    <Download /> Download Sample Package (.zip)
-                  </a>
-                  <span style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono',monospace" }}>
-                    ~47 KB · Unzip to view
-                  </span>
+                  <a href={LINKS.samplePackage} className="btn btn-primary" target="_blank" rel="noopener noreferrer" style={{ padding: "14px 28px" }}>
+  <Download /> View Sample Audit Package →
+</a>
+<span style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono',monospace" }}>
+  7 artifacts · Renders in-browser · No download
+</span>
                 </div>
 
                 <p style={{ fontSize: 12, color: "#64748B", fontFamily: "'Space Mono',monospace", textAlign: "center", fontStyle: "italic", margin: 0, lineHeight: 1.5 }}>
