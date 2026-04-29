@@ -16,6 +16,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body style="margin: 0; padding: 0; background-color: #050A12;">
+  <div class="grid-bg"></div>
   <!-- S.3971 UPDATE BANNER -->
   <div style="background: linear-gradient(90deg, #1E3A5F 0%, #3B82F6 100%); padding: 10px 20px; text-align: center; font-family: system-ui, -apple-system, sans-serif; color: #fff; font-size: 13px; line-height: 1.5; letter-spacing: 0.01em; border-bottom: 1px solid rgba(255,255,255,0.1);">
     <strong style="letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; font-family: 'Space Mono', monospace; margin-right: 8px;">S.3971 Update —</strong>
@@ -359,6 +360,17 @@ function ROICalculator() {
               display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
               border-radius: 100px; font-family: 'Space Mono', monospace; font-size: 11px;
               letter-spacing: 0.5px;
+              /* Background grid */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(14, 165, 233, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.06) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
             }
             input[type=range] { height: 6px; border-radius: 3px; background: rgba(59,130,246,0.15); outline: none; }
             input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #3B82F6; cursor: pointer; box-shadow: 0 0 0 4px rgba(59,130,246,0.2); }
