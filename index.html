@@ -39,7 +39,7 @@
       stripeFlagship: "https://buy.stripe.com/00wfZhadgaJQaJdc55aIM03",
       // Quick Start: $2,000 one-time setup + $597/mo subscription
       stripeQuick:    "https://buy.stripe.com/7sY7sL2KO5pwdVp6KLaIM04",
-      // Full Coverage: $3,500 one-time setup + $597/mo subscription (includes historical reconstruction)
+      // Full Coverage: $3,500 one-time setup + $597/mo (Gap Assessment + dashboard + indirect rate setup)
       stripeFull:     "https://buy.stripe.com/6oU7sL0CGf06g3xc55aIM05",
       // Monthly-only: $597/mo for teams that don't need setup (added post-launch)
       stripeMonthly:  "https://buy.stripe.com/bJeeVdcloaJQ8B52uvaIM06",
@@ -294,9 +294,8 @@ function ROICalculator() {
         a: "A $48/month timesheet tool records whatever your engineer types — including non-compliant entries that will fail an audit. PhaseOne doesn't just record time — it translates natural language into DCAA-ready documentation, flags unallowable costs automatically, runs weekly compliance audits, and monitors your contract burn rate. Plus, the 15 minutes/day your engineers save on timesheets is worth ~$28,000/year in recovered productivity. Use the ROI calculator above." },
       { q: "How is this different from Deltek or Unanet?",
         a: "Those are enterprise ERPs designed for 500-person defense contractors — they cost $50K+ to implement and take months. We're built specifically for Phase I SBIR teams: 48-hour deployment, zero training required, and your engineers never leave Slack." },
-      { q: "What if I'm already 30–60 days into my award?",
-        a: "That's exactly what our Full Coverage package handles. We backfill your compliance documentation from Day 1 of your award — no gaps, no audit risk." },
-      { q: "Does DCAA even audit Phase I?",
+      { { q: "What if I'm already 30–60 days into my award?",
+        a: "Full Coverage is built for this situation. We don't backfill or reconstruct timesheets — that's a fast path to a DCAA finding. Instead, we run an SF-1408 Gap Assessment against the 14 criteria, document the gaps honestly with a defensible remediation narrative, deploy the system going forward, and stand up your indirect rate structure and pre-award packet. Auditors don't expect perfection from a Phase I team — they expect honesty they can verify and a system running cleanly by the time you submit Phase II." },
         a: "Phase I awards are typically firm-fixed-price, so direct DCAA audits during Phase I execution are rare. The pressure hits at Phase II — where awards reach $1.5M+ and a Standard Form 1408 pre-award accounting system survey is triggered before funds are obligated. Teams that start compliance habits during Phase I walk into Phase II with a strong posture. Teams that scramble at submission time typically face 60–120 day award delays." },
       { q: "How is this different from hiring an accountant?",
         a: "Traditional DCAA accountants handle your books — which is important. We handle the engineering-side compliance that accountants can't: daily timekeeping capture, AI translation to audit-ready language, real-time compliance scoring, and automatic unallowable cost detection. We complement your accountant, not replace them." },
@@ -817,8 +816,8 @@ function ROICalculator() {
               </p>
             </div>
 
-            {/* DEPLOYMENT OPTIONS */}
-            <details style={{ maxWidth: 640, margin: "0 auto" }}>
+           {/* DEPLOYMENT OPTIONS */}
+            <details style={{ maxWidth: 920, margin: "0 auto" }}>
               <summary style={{
                 cursor: "pointer", padding: "14px 20px",
                 background: "rgba(15,23,42,0.4)", border: "1px solid rgba(59,130,246,0.08)",
@@ -827,42 +826,77 @@ function ROICalculator() {
               }}>
                 OTHER DEPLOYMENT OPTIONS (click to expand)
               </summary>
-              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 16 }}>
-                <div className="card" style={{ flex: "1 1 280px", padding: 24 }}>
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 16, justifyContent: "center" }}>
+
+                {/* QUICK START */}
+                <div className="card" style={{ flex: "1 1 280px", maxWidth: 320, padding: 24, display: "flex", flexDirection: "column" }}>
                   <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Quick Start</h4>
                   <p style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>For teams in the first 30 days of Phase I</p>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
                     <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 30, fontWeight: 700, color: "white" }}>$2,000</span>
-                    <span style={{ fontSize: 13, color: "#64748B" }}>setup + $597/mo</span>
+                    <span style={{ fontSize: 13, color: "#64748B" }}>setup</span>
                   </div>
-                  <p style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5, marginBottom: 14 }}>
-                    Full deployment. Compliance starts from Day 1 of your award going forward.
-                  </p>
-                  <a href={LINKS.stripeQuick} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Quick Start</a>
+                  <p style={{ fontSize: 11, color: "#94A3B8", marginBottom: 14, fontFamily: "'Space Mono',monospace" }}>+ $597/mo</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16, flex: 1 }}>
+                    {[
+                      "48-hour Slack-native deployment",
+                      "AI translation + CLIN mapping",
+                      "Daily labor capture",
+                      "Unallowable cost flagger",
+                      "Weekly pre-auditor scans",
+                      "Standard support",
+                    ].map((f, i) => (
+                      <div key={i} style={{ display: "flex", gap: 8 }}><Check /><span style={{ fontSize: 12, color: "#CBD5E1", lineHeight: 1.5 }}>{f}</span></div>
+                    ))}
+                  </div>
+                  <a href={LINKS.stripeQuick} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Quick Start — $2,000</a>
                 </div>
-                <div className="card" style={{ flex: "1 1 280px", padding: 24 }}>
+
+                {/* FULL COVERAGE */}
+                <div className="card" style={{ flex: "1 1 280px", maxWidth: 320, padding: 24, display: "flex", flexDirection: "column", border: "1px solid rgba(59,130,246,0.25)" }}>
                   <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Full Coverage</h4>
-                  <p style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>For teams 30–90 days post-award</p>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
+                  <p style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>For teams 30–90 days post-award or approaching Phase II</p>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
                     <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 30, fontWeight: 700, color: "white" }}>$3,500</span>
-                    <span style={{ fontSize: 13, color: "#64748B" }}>setup + $597/mo</span>
+                    <span style={{ fontSize: 13, color: "#64748B" }}>setup</span>
                   </div>
-                  <p style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5, marginBottom: 14 }}>
-                    Includes historical reconstruction back to Day 1 of award + gap analysis + remediation.
-                  </p>
-                  <a href={LINKS.stripeFull} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Full Coverage</a>
+                  <p style={{ fontSize: 11, color: "#94A3B8", marginBottom: 14, fontFamily: "'Space Mono',monospace" }}>+ $597/mo</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16, flex: 1 }}>
+                    <div style={{ fontSize: 10, fontFamily: "'Space Mono',monospace", color: "#64748B", letterSpacing: "1px", textTransform: "uppercase" }}>Everything in Quick Start, plus:</div>
+                    {[
+                      "Compliance Command Center (private dashboard)",
+                      "SF-1408 Gap Assessment (14-criteria audit)",
+                      "Indirect rate structure setup",
+                      "Pre-award audit prep packet",
+                      "Phase II Readiness Guarantee",
+                      "60-day onboarding concierge",
+                    ].map((f, i) => (
+                      <div key={i} style={{ display: "flex", gap: 8 }}><Check /><span style={{ fontSize: 12, color: "#CBD5E1", lineHeight: 1.5 }}>{f}</span></div>
+                    ))}
+                  </div>
+                  <a href={LINKS.stripeFull} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Full Coverage — $3,500</a>
                 </div>
-                <div className="card" style={{ flex: "1 1 280px", padding: 24 }}>
+
+                {/* MONTHLY ONLY */}
+                <div className="card" style={{ flex: "1 1 280px", maxWidth: 320, padding: 24, display: "flex", flexDirection: "column" }}>
                   <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Monthly Only</h4>
                   <p style={{ fontSize: 12, color: "#64748B", marginBottom: 12 }}>For teams with existing compliance infrastructure</p>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
                     <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 30, fontWeight: 700, color: "white" }}>$597</span>
-                    <span style={{ fontSize: 13, color: "#64748B" }}>/month · no setup</span>
+                    <span style={{ fontSize: 13, color: "#64748B" }}>/month</span>
                   </div>
-                  <p style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5, marginBottom: 14 }}>
-                    Skip the setup package if your team already has CLIN/labor structure configured. We deploy the Slack bot + AI engine against your existing schema.
-                  </p>
-                  <a href={LINKS.stripeMonthly} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Monthly Only</a>
+                  <p style={{ fontSize: 11, color: "#94A3B8", marginBottom: 14, fontFamily: "'Space Mono',monospace" }}>No setup fee</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16, flex: 1 }}>
+                    {[
+                      "Slack bot + AI translation",
+                      "Deploys against your existing CLIN schema",
+                      "Daily labor capture + audit log",
+                      "Standard support",
+                    ].map((f, i) => (
+                      <div key={i} style={{ display: "flex", gap: 8 }}><Check /><span style={{ fontSize: 12, color: "#CBD5E1", lineHeight: 1.5 }}>{f}</span></div>
+                    ))}
+                  </div>
+                  <a href={LINKS.stripeMonthly} className="btn btn-secondary" style={{ width: "100%", fontSize: 13 }}>Monthly — $597/mo</a>
                 </div>
               </div>
             </details>
